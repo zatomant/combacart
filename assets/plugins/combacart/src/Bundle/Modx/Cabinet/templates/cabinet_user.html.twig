@@ -1,0 +1,21 @@
+<div class="card mb-3 w-100">
+    <div class="row no-gutters">
+        <div class="col-sm-4 text-center my-auto">
+            {% if details.photo %}
+                <img src="{{ details.photo }}" class="img-thumbnail" width="150px">
+            {% else %}
+                <i class="bi bi-person bi-2x img-thumbnail" style="color:#87caff"></i>
+            {% endif %}
+        </div>
+        <div class="col-sm-8">
+            <div class="card-body text-center">
+                <h5 class="card-title"> {{ details.fullname }}</h5>
+                <p class="card-text"><span class="text-secondary">Email:</span> {{ details.email }}</p>
+                <p class="card-text small text-muted">{{ lang.cabinet_profile_update }} {{ details.createdon|date("d.m.Y H:i") }}</p>
+                <p>
+                    <a class="btn btn-sm btn-secondary" href="?logout" rel="nofollow">{{ lang.cabinet_exit }}</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

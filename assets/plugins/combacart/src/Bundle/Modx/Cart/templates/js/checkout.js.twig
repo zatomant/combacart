@@ -1,0 +1,168 @@
+const container = document.querySelector("#CheckoutForm");
+const elements = container.querySelectorAll('input,select,textarea');
+for (let i = elements.length; i--;) {
+    elements[i].addEventListener('invalid', function () {
+        this.scrollIntoView(false);
+    });
+}
+
+function dlgSave(dlg) {
+    showSpinner("{{ lang.processing }}");
+    saveFormData(serializeFormData(dlg), "ch_checkout", function (response) {
+        if (response.status === "result_ok") {
+            window.location.href = "/{{ page_checkout_tnx }}";
+        } else {
+            ToastHide();
+            if (response.modal_error) {
+                showErrorModal(response.message);
+            } else {
+                showError(response.message);
+                if (response.element) {
+                    document.getElementById(response.element).scrollIntoView({block: 'center'});
+                    document.getElementById(response.element).focus();
+                }
+            }
+        }
+    });
+}
+
+function saveFormData(formData, sendtype, callback) {
+    $.ajax({
+        url: window.location.href,
+        type: "POST",
+        dataType: 'html',
+        data: {
+            action: sendtype,
+            formdata: formData
+        },
+        success: function (data) {
+            let jdata;
+            try {
+                jdata = JSON.parse(data);
+            } catch (e) {
+            }
+            if (!jdata) {
+                jdata = $.parseJSON('{"status":"result_error","message":"{{ lang.error_descr }}"}');
+            }
+            callback(jdata);
+        }
+    });
+}
+
+function onDeliveryChange(noSetIndex) {
+    const delivery = $('input[name=typedelivery]:checked', '#CheckoutForm').val();
+    if (!delivery) return;
+
+    const el = $('#address');
+    const el1 = $('#address_label_ext');
+    const elb = $('#address_label');
+    const eldb = $(".delivery_block");
+
+    $(el).css('display', '');
+    $(el).prop('required',true);
+    $(elb).css('display', '');
+    $(el).css('display', '');
+    $(el1).css('display', '');
+    $(el1).text('');
+
+    $(eldb).removeClass('d-none');
+
+    $('#pt_cod,label[for=pt_cod]').attr("disabled", false).parents('.form-check').show();
+    $('#pt_cashless,label[for=pt_cashless]').attr("disabled", false).parents('.form-check').show();
+    $('#pt_privat24,label[for=pt_privat24]').attr("disabled", false).parents('.form-check').show();
+
+    $('#delivery_txt').show();
+    $('input[name=typedelivery]').parents('.form-check').removeClass('border');
+    $('#' + delivery).parent('.form-check').addClass('border');
+    $('#' + delivery).parent('.form-check').append($(eldb));
+
+    switch (delivery) {
+        case 'dt_pickup':
+            $(el).css("display", "none");
+            $(el).prop('required',false);
+            $(elb).css("display", "none");
+            $(el1).css("display", "none");
+
+            $(eldb).addClass("d-none");
+            if (!noSetIndex) $("#pt_cod").prop("checked", true);
+            $('#delivery_txt').hide();
+            break;
+        case 'dt_ukrposhta':
+        case 'dt_ukrposhta_int':
+        case 'dt_ukrposhta_express':
+            if (!noSetIndex) $("#pt_cashless").prop("checked", true);
+            $(el1).text('(місто, індекс відділення Укрпошта)');
+            $("#pt_cod,label[for=pt_cod]").attr("disabled", "disabled").parents('.form-check').hide();
+            break;
+        case 'dt_novaposhta':
+            if (!noSetIndex) $("#pt_cashless").prop("checked", true);
+            $(el1).text('(місто, номер відділеня Нова пошта)');
+            break;
+        case 'dt_novaposhta_postomat':
+            if (!noSetIndex) $("#pt_cashless").prop("checked", true);
+            $(el1).text('(місто, номер поштомата Нова пошта)');
+            break;
+        case 'dt_novaposhta_global':
+            if (!noSetIndex) $("#pt_cashless").prop("checked", true);
+            $(el1).text('(місто, номер відділення/поштомата Нова пошта Global)');
+            $("#pt_cod,label[for=pt_cod]").attr("disabled", "disabled").parents('.form-check').hide();
+            break;
+        case 'dt_meest':
+            if (!noSetIndex) $("#pt_cashless").prop("checked", true);
+            $(el1).text('(місто, номер відділення Meest)');
+            $("#pt_cod,label[for=pt_cod]").attr("disabled", "disabled").parents('.form-check').hide();
+            break;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function (event) {
+    jQuery(document).ready(function () {
+
+        jQuery(document.body).on("submit", "#CheckoutForm", function (event) {
+            event.preventDefault();
+            {% if reCaptchaKey is empty %}
+            dlgSave('CheckoutForm');
+            {% else %}
+            grecaptcha.ready(function () {
+                grecaptcha.execute('{{ reCaptchaKey }}', {action: 'checkout'}).then(function (token) {
+                    document.getElementById('token').value = token;
+                    dlgSave('CheckoutForm');
+                });
+            });
+            {% endif %}
+        });
+
+        jQuery(document.body).on("click", 'input[name=typedelivery]', function () {
+            onDeliveryChange();
+        });
+        jQuery(document.body).on('keyup input paste', '#name', function () {
+            const curName = $(this).val();
+            if ($('#name_delivery').data("stat") === 1) return;
+            $('#name_delivery').val(curName);
+        });
+        jQuery(document.body).on('keyup input paste', '#phone', function () {
+            const curPhone = $(this).val();
+            if ($('#phone_delivery').data("stat") === 1) return;
+            $('#phone_delivery').val(curPhone);
+        });
+        jQuery(document.body).on('keyup input paste', '#name_delivery,#phone_delivery', function () {
+            $(this).data("stat", 1);
+        });
+        jQuery(document.body).on('keyup input paste', 'textarea', function () {
+            const limit = parseInt($(this).attr('data-maxlength'));
+            const text = $(this).val();
+            const chars = text.length;
+
+            if (chars > limit) {
+                const new_text = text.substring(0, limit);
+                $(this).val(new_text);
+            }
+        });
+
+        const $radios = $("input:radio[name=typedelivery]");
+        if ($radios.is(":checked") === false) {
+            $radios.filter("[value=dt_novaposhta]").prop("checked", true);
+        }
+        onDeliveryChange();
+    });
+});

@@ -1,0 +1,25 @@
+<div style='display:{% if doc.doc_delivery != 'dt_ukrposhta' %}none {% endif %}'>
+	<div class="row">
+		<div class="col-2 border">
+			<b>Юрченко М.Д<br>а/c №5<br>Київ, 04108<br>(068) 761-72-90</b>
+		</div>
+		<div class="col-4 border">
+			<b>{{doc.doc_delivery_client_name}}<br>{{doc.doc_client_address}}<br>{{ doc.doc_delivery_client_phone|formatphone }}</b>
+		</div>
+		<div class="col-2 border">
+			<b>Оголошена цінність:&nbsp;
+			{% if doc.doc_payment == 'pt_cod' %}
+				{{ doc.doc_paysum |number_format(2)}}
+			{% else %}
+				0.00
+			{% endif %}
+			<br>Післясплата:&nbsp;
+			{% if doc.doc_payment == 'pt_cod' %}
+				{{ doc.doc_paysum |number_format(2)}}
+			{% else %}
+				0.00
+			{% endif %}
+			</b>
+		</div>
+	</div>
+</div>

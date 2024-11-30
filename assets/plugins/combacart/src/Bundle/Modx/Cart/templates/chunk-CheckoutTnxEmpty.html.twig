@@ -1,0 +1,20 @@
+<div class="px-4 py-5 my-2 text-center">
+    <h1 class="display-5 fw-bold text-body-emphasis">Дякуємо!</h1>
+    <div class="col-lg-6 mx-auto">
+        <p class="lead mb-4">Інформацію по своїх замовлення можна подивитить у Персональному кабінеті або за посиланням яке ви отримуете на пошту чи у месенджер.</p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a href="/account" type="button" class="btn btn-primary btn-lg px-4 gap-3">Персональний кабінет</a>
+            <a href="/" type="button" class="btn btn-outline-secondary btn-lg px-4">До сайту</a>
+        </div>
+    </div>
+</div>
+{% if marketplace.regime %}
+    <p><strong>Час роботи відділу обробки інтернет-замовлень:</strong></p>
+    <ul>
+        {% for r in marketplace.regime %}
+            <li>{{ r }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{{ include('contact.html.twig')|raw }}

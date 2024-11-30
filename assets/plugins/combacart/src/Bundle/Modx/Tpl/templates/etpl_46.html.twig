@@ -1,0 +1,14 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+{{ include('tabledata/daily-appeal-ua.html.twig')|clearEOF|raw }} {{ macros.formatname(doc.doc_delivery_client_name) }},
+{% if doc.doc_delivery_number %}
+ваше замовлення №{{ doc.doc_number}} відправлено на {{ lang[doc.doc_delivery] }}
+декларація {{ doc.doc_delivery_number|formatdeclaration }}
+
+Після того як оператор {{ lang[doc.doc_delivery] }} актуалізує дані ви зможете відстежити відправлення на сайті.
+
+**Доставка виконується на умовах FCA (Free Carrier), тому при отриманні товару необхідно перевірити його цілісність безпосередньо у відділенні перевізника. При наявності пошкодження відправлення складіть Акт приймання-передачі та Претензію для реалізації права на компенсацію та повернення товару.**
+
+{% if context.sys.messengerUrl == 'on' %}
+{{ macros.linktracking(_context,{onlylink:true}) }}
+{% endif %}
+{% endif %}

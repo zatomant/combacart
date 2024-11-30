@@ -1,0 +1,30 @@
+{% for spec in doc.specs %}
+    <li class="list-group-item px-1 py-1
+{% if spec.ref_available == 0 %}text-muted" style="b1ackground-color:#c9cbcc"{% else %}"{% endif %}
+    >
+    <div class="row avail-{{ spec.ref_available }}">
+        <div class="col-4 px-1">
+            <a href="{{ spec.docspec_product_weblink }}.html" title="{{ spec.docspec_product_name }}">
+                <picture>
+                    <img loading="lazy"
+                         data-src="[(site_url)][[GetImage? &src=`{{ spec.docspec_product_photo }}` &preset=`cart-goods` &oper=`lazy`]]"
+                         alt="{{ spec.docspec_product_name }}" class="img-fluid pe-1 rounded-lg lazy">
+                </picture>
+            </a>
+        </div>
+        <div class="col-8 ps-0">
+            <a {% if spec.ref_available == 0 %}class="text-reset text-decoration-line-through"{% endif %}
+               href="{{ spec.docspec_product_weblink }}.html">{{ spec.docspec_product_name }}</a>
+            {% if spec.ref_available == 0 %}
+                <span class="fw-lighter float-end {% if spec.ref_available == 0 %}text-decoration-line-through{% endif %}">{{ spec.docspec_amount }} {{ spec.docspec_measure }}</span>
+                <div class="fw-lighter text-end">{{ lang.goods_status_outofstock }}</div>
+            {% else %}
+                <span class="fw-lighter float-end {% if spec.ref_available == 0 %}text-decoration-line-through{% endif %}">{{ spec.docspec_amount }} {{ spec.docspec_measure }} × {{ spec.docspec_price|number_format(2, '.', '') }} {{ doc.currency }}</span>
+                {% if spec.docspec_ondemand == 1 %}
+                    <br><span class="badge text-bg-warning float-end">{{ lang.goods_status_ondemand }}</span>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    </li>
+{% endfor %}
