@@ -1,8 +1,10 @@
 ## Мінімальна технічна конфігурація ##
 
 PHP 7.4 та вище
-Composer 2
-EVO 1.4+ або EVO 3+
+
+Composer 
+
+EVO 1.4+ або EVO 3+ (Evolution CMS)
 
 
 ## Можливості ##
