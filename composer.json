@@ -3,9 +3,11 @@
   "description": "Plugin for making an e-commerce or marketplace based on Evolution CMS 1.4+, 3.2+",
   "keywords": [
     "e-commerce",
+    "shopcart",
     "checkout",
     "marketplace",
-    "modx plugins"
+    "modx plugins",
+    "evolution cms plugins"
   ],
   "type": "plugins",
   "minimum-stability": "stable",
