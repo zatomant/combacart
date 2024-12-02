@@ -365,7 +365,7 @@ class Server extends ModxOptions
             $signs = [];
             $_doc['Document']['signs'] = $signs;
 
-            if ( array_search_by_key($this->marketplace(),'paall') == true && $_doc['Document']['doc_sum'] > 0) {
+            if (array_search_by_key($this->marketplace(), 'paall') == true && $_doc['Document']['doc_sum'] > 0) {
                 $signs = [
                     'doc_sign_2' => "true",
                     'doc_sign_2_date' => date("Y-m-d H:i:s"),
@@ -465,6 +465,40 @@ class Server extends ModxOptions
         return $n;
     }
 
+    private function fetchsigns(array $source, array $signs = []): array
+    {
+        for ($i = 0; $i < 14; $i++) {
+            if ($source['doc_sign_' . $i] && $source['doc_sign_' . $i] != 'false') {
+
+                if (!empty(recursive_array_search_key_value($signs, $i, 'type', true))) {
+                    foreach ($signs as $k => $v) {
+                        if ($v['type'] == $i) {
+                            unset($signs[$k]);
+
+//                            $signs[$k] = [
+//                                'type' => $i,
+//                                'date' => $source['doc_sign_' . $i . '_date'],
+//                                'manager' => $source['doc_sign_' . $i . '_manager'],
+//                                'par_name_first' => $source['doc_sign_' . $i . '_manager_name']
+//                            ];
+                        }
+                    }
+                }
+
+                $signs[] = [
+                    'type' => $i,
+                    'date' => $source['doc_sign_' . $i . '_date'],
+                    'manager' => $source['doc_sign_' . $i . '_manager'],
+                    'par_name_first' => $source['doc_sign_' . $i . '_manager_name']
+                ];
+
+
+            }
+        }
+
+        return $signs;
+    }
+
     /**
      * Перерахунок сум в специфікації та оновлення загальної суми Кошика
      * @param string $uid
@@ -514,6 +548,7 @@ class Server extends ModxOptions
     public function payee(string $uid = null): array
     {
         $pe = array(
+            // цей ФОП може приймати платежі як платіжками так і онлайн оплатою
             [
                 'uid' => '00000000-0003-0000-0000-000000000001',
                 'value' => 'ФОПтест',
@@ -535,6 +570,7 @@ class Server extends ModxOptions
                     ]
                 ]
             ],
+            // а цей ФОП приймає платежі лише через платіжки
             [
                 'uid' => '00000000-0003-0000-0000-000000000002',
                 'value' => 'ФОПтест2',
@@ -694,7 +730,6 @@ class Server extends ModxOptions
         return $_a;
     }
 
-
     /**
      * Дані по варіантах оплати
      * @return array
@@ -826,40 +861,6 @@ class Server extends ModxOptions
         return ($value == 'true') ? 1 : 0;
     }
 
-    private function fetchsigns(array $source, array $signs = []): array
-    {
-        for ($i = 0; $i < 14; $i++) {
-            if ($source['doc_sign_' . $i] && $source['doc_sign_' . $i] != 'false') {
-
-                if (!empty(recursive_array_search_key_value($signs, $i, 'type', true))) {
-                    foreach ($signs as $k => $v) {
-                        if ($v['type'] == $i) {
-                            unset($signs[$k]);
-
-//                            $signs[$k] = [
-//                                'type' => $i,
-//                                'date' => $source['doc_sign_' . $i . '_date'],
-//                                'manager' => $source['doc_sign_' . $i . '_manager'],
-//                                'par_name_first' => $source['doc_sign_' . $i . '_manager_name']
-//                            ];
-                        }
-                    }
-                }
-
-                $signs[] = [
-                    'type' => $i,
-                    'date' => $source['doc_sign_' . $i . '_date'],
-                    'manager' => $source['doc_sign_' . $i . '_manager'],
-                    'par_name_first' => $source['doc_sign_' . $i . '_manager_name']
-                ];
-
-
-            }
-        }
-
-        return $signs;
-    }
-
     public function documentupdatesigns(array $data): ?string
     {
         $this->setLogLevel(LOG_DEBUG);
@@ -875,7 +876,7 @@ class Server extends ModxOptions
 
             $_paymentinfo = [
                 'doc_sign_13' => "true",
-                'doc_sign_13_date' => date("Y-m-d H:i:s", floor((array_search_by_key($data['Document']['payment_info'], 'create_date')/1000))),
+                'doc_sign_13_date' => date("Y-m-d H:i:s", floor((array_search_by_key($data['Document']['payment_info'], 'create_date') / 1000))),
                 'doc_sign_13_manager' => -1,
                 'doc_sign_13_manager_name' => array_search_by_key($data['Document']['payment_info'], 'manager'),
             ];

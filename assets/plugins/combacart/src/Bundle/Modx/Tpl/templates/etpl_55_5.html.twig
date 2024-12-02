@@ -3,6 +3,7 @@
 <br><br>
 {% if doc.doc_paysum > 0 %}
     Ваше замовлення прийняте та чекає оплати.
+    {{ dump(doc.payee) }}
     {% if doc.payee %}
         <br><br>
         Для здійснення оплати через банк (<b>Монобанк, Пумб, Ощадбанк, Альфабанк, тощо</b>) обов'язково використовуйте наступні банківські реквізити:
@@ -29,6 +30,9 @@
                     <td><b>{{ lang.payment_bank_note_inline }}{{ doc.doc_number }}</b></td>
                 </tr>
             </table>
+        {% endfor %}
+        {% for pt in doc.payee.pt|filter(pt => pt.type == 'pt_online')|slice(0,1) %}
+            Для здійснення <strong>онлайн оплати</strong> пройдіть <a href="{{ macros.linkinvoice(_context,{onlylink:true}) }}">за посиланням та виберіть</a> зручний для вас варіант.
         {% endfor %}
     {% endif %}
 {% else %}
