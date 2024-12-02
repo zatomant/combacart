@@ -203,10 +203,10 @@ class ModxOptions extends Options
 
     /**
      * Видалити дані з локального кешу
-     * @param string $uid
+     * @param string|null $uid
      * @return $this
      */
-    public function invalidateCache(string $uid): ModxOptions
+    public function invalidateCache(?string $uid): ModxOptions
     {
         if (!empty($uid)) {
             (new Cache())->delete($uid);
