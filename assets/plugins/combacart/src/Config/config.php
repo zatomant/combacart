@@ -17,7 +17,7 @@ const COMBAMODX_SESSION_NAME = 'SSUSER_';
 const DB_SERVER_NAME = 'localhost';
 
 // хост та доменне і'мя сайту,  https://something.com.ua something.com.ua
-define("COMBAMODX_SERVER_HOST", 'http://'.getenv('SERVER_NAME'));
+define("COMBAMODX_SERVER_HOST", 'https://' . getenv('HTTP_HOST'));
 define("COMBAMODX_SERVER_NAME", getenv('SERVER_NAME'));
 
 // мовний файл за замовчуванням

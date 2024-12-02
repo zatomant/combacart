@@ -17,9 +17,9 @@
                             <img class="img-fluid" src="/[[GetImage? &src=`{{ spec.docspec_product_photo }}` &phpthumb=`webp=1` &preset=`goods-tnx`]]">
                         {% endfor %}
                     </p>
-                    <a href="//{{ macros.linktracking(_context,{onlylink:true})|spaceless }}" class="btn btn-primary mt-auto">{{ lang.action_tracking}}</a>
+                    <a href="{{ macros.linktracking(_context,{onlylink:true})|spaceless }}" class="btn btn-primary mt-auto">{{ lang.action_tracking}}</a>
                     {% if signs|filter(v => v == 2) and doc.doc_paysum > 0 and not signs|filter(v => v in [4,5,6,13]) %}
-                        <a class="btn btn-success mt-2" href="//{{ macros.linkinvoice(_context,{onlylink:true})|spaceless }}">{{ lang.action_pay }}</a>
+                        <a class="btn btn-success mt-2" href="{{ macros.linkinvoice(_context,{onlylink:true})|spaceless }}">{{ lang.action_pay }}</a>
                     {% endif %}
                 </div>
             </div>
