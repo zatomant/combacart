@@ -33,13 +33,13 @@ EVO 1.4+ або EVO 3+ (Evolution CMS)
 ## Встановлення ##
 
 Інсталюйте CombaCart:
-- завантажте архів з CombaCart з [github.com](https://github.com/zatomant/combacart) та на сторінці Extras перейдіть до  "Install by file" і виберіть архівний файл.
+- завантажте архів з CombaCart з [github.com](https://github.com/zatomant/combacart) та на сторінці Extras перейдіть до  "Install by file", виберіть архівний файл і натисніть "Install".
   
 або
 
 - оновіть CombaCart новими файлами з [github.com](https://github.com/zatomant/combacart) шляхом розпакування архіву та заміни файлів в /assets/plugins .
   
-**Після встановлення CombaCart**, в консолі виконайте оновлення компонентів вказаних в composer.json  
+**Обов'язково після встановлення CombaCart** виконайте в консолі оновлення компонентів вказаних в composer.json  
 ```
 cd /assets/plugins/combacart
 
