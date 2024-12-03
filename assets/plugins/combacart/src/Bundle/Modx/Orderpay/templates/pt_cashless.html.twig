@@ -1,0 +1,32 @@
+{% if doc.payee %}
+    {% for pt in doc.payee.pt|filter(pt => pt.type == 'pt_cashless') %}
+        <div class="card border-0 bgg mt-3">
+            <div class="card-body border-0 p-0 ">
+                {{ lang.payment_bank_details }}:
+                <table class="table table-bordered" style="table-layout: fixed; width: 100%">
+                    <tr>
+                        <td>{{ lang.payment_bank_recipient }}:</td>
+                        <td>{{ pt.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ lang.payment_bank_iban }}:</td>
+                        <td>{{ pt.account }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ lang.payment_bank_usr }}:</td>
+                        <td>{{ pt.okpo }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ lang.payment_bank_amount }}:</td>
+                        <td><b>{{ doc.doc_paysum|number_format(2, '.', '') }} грн</b></td>
+                    </tr>
+                    <tr>
+                        <td>{{ lang.payment_bank_note }}:</td>
+                        <td><b>{{ lang.payment_bank_note_inline }}{{ doc.doc_number }}</b></td>
+                    </tr>
+                </table>
+                <span class="text-danger fw-bold">{{ lang.payment_bank_excl }}</span>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}

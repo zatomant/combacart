@@ -1,0 +1,30 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+        {% if doc.paging.from %}
+            <tr>
+                <td colspan="8">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination pagination-sm justify-content-end mt-1 mb-0 pg-info">
+                            <li class="page-item">
+                                <button class="page-link border-0 bg-transparent disabled">
+                                    {{ doc.paging.from }}-{{ doc.paging.to }} {{ lang.paging_of }} {{ doc.paging.total }}
+                                </button>
+                            </li>
+                            <li class="page-item">
+                                <button class="page-link border-0 btnpaging {% if not doc.paging.prev %}disabled bg-transparent{% endif %}" data-value="{{ doc.paging.prev }}"
+                                        aria-label="Previous">
+                                    <span aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
+                                </button>
+                            </li>
+                            <li class="page-item">
+                                <button class="page-link border-0 btnpaging {% if not doc.paging.next %}disabled bg-transparent{% endif %}" data-value="{{ doc.paging.next }}"
+                                        aria-label="Next">
+                                    <span aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+                </td>
+            </tr>
+        {% endif %}
+{{ include('table.row.html.twig') }}
+

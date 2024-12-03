@@ -1,0 +1,17 @@
+﻿{% apply spaceless %}
+{% if "now"|date("H") >= "6" and "now"|date("H") < "12" %}
+Доброго ранку
+{% endif %}
+{% if "now"|date("H") >= "12" and "now"|date("H") < "18" %}
+Доброго дня
+{% endif %}
+{% if "now"|date("H") >= "18" and "now"|date("H") < "21" %}
+Доброго вечора
+{% endif %}
+{% if "now"|date("H") >= "21" and "now"|date("H") <= "23" %}
+Доброї ночі
+{% endif %}
+{% if "now"|date("H") >= "00" and "now"|date("H") < "6" %}
+Доброї ночі
+{% endif %}
+{% endapply %}

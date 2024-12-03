@@ -1,0 +1,27 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+{{ include('tabledata/daily-appeal-ua.html.twig') }}, {{ macros.formatname(doc.doc_client_name) }}.
+це {{ doc.seller.label }}.
+{% if doc.doc_paysum >0 %}
+ваше замовлення №{{ doc.doc_number }} прийняте та чекає на оплату.
+
+{% if doc.payee %}
+реквізити **до сплати через будь-якій банк (Ощадбанк, Пумб, Монобанк, Альфа, Приватбанк, Райф)**:
+{% for pt in doc.payee.pt|filter(pt => pt.type == 'pt_cashless') %}
+IBAN: {{ pt.account }}
+ЄДРПОУ: {{ pt.okpo }}
+Отримувач: {{ pt.label }}
+Сума: {{ doc.doc_paysum |number_format(2, '.', '') }} грн
+Призначення: замовлення {{ doc.doc_number }}
+{% endfor %}
+{% for pt in doc.payee.pt|filter(pt => pt.type == 'pt_online')|slice(0,1) %}
+для здійснення онлайн оплати пройдіть за посиланням та виберіть зручний для вас варіант {{ macros.linkinvoice(_context,{onlylink:true}) }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if sys.messengerUrl == 'on' %}
+{{ macros.linkinvoice(_context,{onlylink:true}) }}
+{% endif %}
+Якщо вам не вдається сплатити, напишіть нам.
+{% endif %}
+

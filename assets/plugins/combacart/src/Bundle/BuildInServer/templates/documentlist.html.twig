@@ -1,0 +1,21 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+{% extends "body.html.twig" %}
+{% block table %}
+    <table class="table table-responsive doc_request" id="doc_request">
+        <thead>
+        <tr>
+            <th scope="col">{{ lang.num }}</th>
+            <th scope="col">{{ lang.date }}</th>
+            <th scope="col">{{ lang.info }}</th>
+            <th scope="col">{{ lang.seller }}</th>
+            <th scope="col">{{ lang.sum }}</th>
+            <th scope="col">{{ lang.comments }}</th>
+            <th scope="col">{{ lang.status }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{ include('table.html.twig') }}
+        </tbody>
+    </table>
+    <div class="td-none text-center">{{ lang.table_isempty }}</div>
+{% endblock %}

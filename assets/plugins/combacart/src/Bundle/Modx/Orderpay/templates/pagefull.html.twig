@@ -1,0 +1,184 @@
+{% import '/macro/htmltag.html.twig' as macros %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{{ lang.payment }} | {{ marketplace.label }}</title>
+    <meta name="robots" content="noindex,nofollow">
+    <meta property="og:image" content="{{ marketplace.icon }}">
+    <meta property="og:title" content="{{ marketplace.label }} ">
+    <meta property="og:description" content="">
+    <meta property="og:image:width" content="262">
+    <meta property="og:image:height" content="262">
+    <meta property="og:url" content="">
+    <link rel="manifest" href="/assets/images/favicon/site.webmanifest">
+    <link rel="dns-prefetch" href="//google-analytics.com/">
+    <link rel="preconnect" href="//google-analytics.com/">
+    <link rel="dns-prefetch" href="//stats.g.doubleclick.net/">
+    <style>
+        body, .card {
+            background-color: #eee7ee !important;
+        }
+
+        .bgg {
+            background-color: #fff !important;
+        }
+
+        .track {
+            position: relative;
+            background-color: #ddd;
+            height: 7px;
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            margin-bottom: 60px;
+            margin-top: 50px
+        }
+
+        .track .step {
+            -webkit-box-flex: 1;
+            -ms-flex-positive: 1;
+            flex-grow: 1;
+            width: 25%;
+            margin-top: -18px;
+            text-align: center;
+            position: relative
+        }
+
+        .track .step.active:before {
+            background: #58D945;
+        }
+
+        .track .step::before {
+            height: 7px;
+            position: absolute;
+            content: "";
+            width: 100%;
+            left: 0;
+            top: 18px
+        }
+
+        .track .step.active .icon {
+            background: #58D945;
+            color: #fff
+        }
+
+        .track .icon {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            position: relative;
+            border-radius: 100%;
+            background: #ddd
+        }
+
+        .track .step.active .text {
+            font-weight: 400;
+            color: #000
+        }
+
+        .track .text {
+            display: block;
+            margin-top: 7px
+        }
+    </style>
+
+</head>
+<body>
+<div class="container mw-100 px-0">
+    <article class="card border-0">
+        <header class="card-header d-flex align-items-center bgg" style="background-color: #4b2f4f !important; color: #fccb04;">
+            <a href="/" class="text-uppercase me-2">{{ marketplace.label }}</a> | {{ lang.payment }}
+            <div class="ms-auto">
+                <a href="/account" style="color:#408aca;"><i class="bi bi-person bi-2x"></i></a>
+            </div>
+        </header>
+        <div class="card-body">
+            {% block status %}
+                {% if doc.signs %}
+                    {% set signs = doc.signs|column('type') %}
+                {% else %}
+                    {% set signs = [] %}
+                {% endif %}
+                <h2>{{ lang.request }} {{ doc.doc_number }}</h2>
+                <article class="card bgg">
+                    <div class="card-body row">
+                        {% if doc.doc_delivery != 'dt_pickup' %}
+
+                            <div class="col-sm mb-2"><strong>{{ lang.created }}:</strong><br>{{ doc.doc_date_create|replace({':000000': ''})|date("d.m.Y H:i") }}</div>
+                            <div class="col-sm mb-2"><strong>{{ lang.payment_type }}:</strong><br>{{ lang[doc.doc_payment] }}</div>
+                            <div class="col-sm mb-2"><strong>{{ lang.delivery_type }}:</strong><br>{{ lang[doc.doc_delivery] }}</div>
+
+                            {% if doc.doc_delivery_number and signs|filter(v => v == 3) %}
+                                <div class="col-sm mb-2"><strong>{{ lang.status }}:</strong><br>{{ lang['status_'~doc.doc_status] }}</div>
+                                <div class="col-sm mb-2"><strong>{{ lang.delivery_number }}:</strong>
+                                    <br><a href="//{{ macros.linktracking(_context,{onlylink:true})|spaceless }}">{{ doc.doc_delivery_number }}</a>
+                                </div>
+
+                            {% else %}
+
+                                {% if signs|filter(v => v == 2) %} {# allow payment #}
+                                    {% if signs|filter(v => v == 6) %}
+                                        <div class="col-sm"><strong>{{ lang.status_6 }}:</strong><br>{{ doc.signs|filter(item => item.type == 6)|first.date|date("d.m.Y") }}</div>
+                                    {% endif %}
+                                {% endif %}
+
+                                {% if signs|filter(v => v == 9) %}
+                                    <div class="col-sm mb-2"><strong>{{ lang.status_9 }}:</strong><br>{{ doc.signs|filter(item => item.type == 9)|first.date|date("d.m.Y") }}
+                                    </div>
+                                {% endif %}
+
+                                <div class="col-sm mb-2">
+                                    <strong>{{ lang.status }}:</strong><br>{{ lang['status_'~doc.doc_status] }}
+                                </div>
+
+                            {% endif %}
+                        {% else %}
+                            {% if lang['status_'~doc.doc_status] %}
+                                <div class="col-sm"><strong>{{ lang.status }}:</strong><br>{{ lang['status_'~doc.doc_status] }}</div>
+                            {% endif %}
+                            <div class="col-sm"><strong>{{ lang.payment_type }}:</strong><br>{{ lang[doc.doc_payment] }}</div>
+                            {% if signs|filter(v => v == 8) %}
+                                <div class="col-sm"><strong>{{ lang.status_8 }}:</strong><br>{{ doc.signs|filter(item => item.type == 8)|first.date|date("d.m.Y") }}</div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </article>
+            {% endblock %}
+            {% block track %}
+            {% endblock %}
+            {% block describle %}
+            {% endblock %}
+            {% block helper %}
+                {{ include('contact.html.twig')|raw }}
+            {% endblock %}
+        </div>
+    </article>
+</div>
+
+<noscript id="deferred-styles">
+    <link rel="stylesheet" type="text/css" href="/assets/plugins/combacart/vendor/twbs/bootstrap/dist/css/bootstrap.min.css??v523"/>
+    <link rel="stylesheet" type="text/css" href="/src/Themes/templates/v4/css/style.min.css?v20220706"/>
+    <link rel="stylesheet" type="text/css" href="/assets/plugins/combacart/vendor/twbs/bootstrap-icons/font/bootstrap-icons.css"/>
+</noscript>
+<script>
+    const loadDeferredStyles = function () {
+        const addStylesNode = document.getElementById("deferred-styles");
+        const replacement = document.createElement("div");
+        replacement.innerHTML = addStylesNode.textContent;
+        document.body.appendChild(replacement)
+        addStylesNode.parentElement.removeChild(addStylesNode);
+    };
+    const raf = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+        window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+    if (raf) raf(function () {
+        window.setTimeout(loadDeferredStyles, 0);
+    });
+    else window.addEventListener('load', loadDeferredStyles);
+
+</script>
+<script src="/assets/plugins/combacart/vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

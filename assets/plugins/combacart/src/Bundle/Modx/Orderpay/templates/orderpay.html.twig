@@ -1,0 +1,25 @@
+{% if doc.pt_liqpay %}
+<ul class="nav nav-tabs" id="myTabPay" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="paytabs-tab1" data-bs-toggle="tab" data-toggle="tab" href="#paytabs-1" role="tab"
+           aria-controls="paytabs-1" aria-selected="true">Оплата на рахунок</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="paytabs-tab2" data-bs-toggle="tab" data-toggle="tab" href="#paytabs-2" role="tab" aria-controls="paytabs-2"
+           aria-selected="false">Оплата онлайн</a>
+    </li>
+</ul>
+<div class="tab-content mb-3" id="myTabContentPay">
+    <div class="tab-pane fade show active" id="paytabs-1" role="tabpanel" aria-labelledby="paytabs-tab1">
+        {{ include('pt_cashless.html.twig')|raw }}
+    </div>
+    {% if doc.pt_liqpay %}
+    <div class="tab-pane fade" id="paytabs-2" role="tabpanel" aria-labelledby="paytabs-tab2">
+        {{ include('pt_liqpay.html.twig')|raw }}
+    </div>
+    {% endif %}
+</div>
+{% else %}
+
+{{ include('pt_cashless.html.twig')  |raw }}
+{% endif %}

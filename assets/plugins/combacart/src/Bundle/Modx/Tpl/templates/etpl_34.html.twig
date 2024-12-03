@@ -1,0 +1,97 @@
+﻿{% import "/macro/htmltag.html.twig" as macros %}
+<html>
+<head></head>
+<body>
+<table width="100%" cellspacing="0" style="background-color:#F9FFEC">
+    <tbody>
+    <tr>
+        <td width="65%" nowrap="" align="center">
+            <strong>{{ marketplace.label }}</strong>
+        </td>
+        <td nowrap="" width="40%" align="center" style="color:#FEFEFE;background-color:#88508e">
+            <a href="https://{{ marketplace.site }}/account.html" ref="nofollow">{{ lang.cabinet }}</a>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">&nbsp;</td>
+    </tr>
+</table>
+<table width="100%" cellspacing="0" bgcolor="#F9FFEC">
+    <tbody>
+    <tr>
+        <td width="95%">
+            <strong>{{ lang.request}} {{ lang.num }}{{ doc.doc_number }} {{ lang.of }}  {{ doc.doc_date_create|date("d.m.Y") }}</strong><br>
+            <font size="-1">{{ lang.email_tracking_tips1 }}<a href="https://{{ marketplace.site }}/account.html" ref="nofollow">{{ lang.cabinet }}</a> {{ lang.email_tracking_tips2 }}
+                <a href="//{{ macros.linktracking(_context,{onlylink:true})|spaceless }}" target="_blank">{{ lang.request_status }}</a></font>
+        </td>
+    </tr>
+    <tr>
+        <td>&nbsp;</td>
+    </tr>
+    </tbody>
+</table>
+<table cellpadding="3" width="100%">
+    <tbody>
+    <tr>
+        <td colspan="3">&nbsp;</td>
+    </tr>
+    <tr>
+        <td colspan="3"><b>{{ lang.cart_goods }}:</b></td>
+    </tr>
+    <tr>
+        <td>{{ lang.goods_code_title }}/{{ lang.product_name }}</td>
+        <td>{{ lang.price }}</td>
+        <td>{{ lang.quantity }}</td>
+    </tr>
+    {% for dl in doc.specs %}
+        <tr>
+            <td>
+                <span style="color:#999999">{{ dl.docspec_product_sku }}</span>
+                <br><a href="https://{{ marketplace.site }}/{{ dl.docspec_product_weblink }}.html">{{ dl.docspec_product_name }}</a>
+            </td>
+            <td>{{ dl.docspec_price|number_format(2) }}</td>
+            <td align="center">{{ dl.docspec_amount|number_format(0) }}</td>
+        </tr>
+    {% endfor %}
+    <tr>
+        <td align="right">
+            <br><b>{{ lang.summary }}:</b>
+        </td>
+        <td colspan="2" align="center">
+            <br><b>{{ doc.doc_sum|number_format(2) }} грн</b>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<br><br>
+<table width="100%" cellspacing="5" bgcolor="#F9FFEC">
+    <tbody>
+    <tr>
+        <td width="25%">{{ lang.customer }}:</td>
+        <td>
+            {{ doc.doc_client_name }}<br>{{ doc.doc_client_phone }}
+            <br><a href="mailto:{{ doc.doc_client_email }}">{{ doc.doc_client_email }}</a>
+        </td>
+    </tr>
+    <tr>
+        <td>{{ lang.delivery_type }}:</td>
+        <td>{{ lang[doc.doc_delivery] }}</td>
+    </tr>
+    <tr>
+        <td>{{ lang.delivery_to }}:</td>
+        <td>{{ doc.doc_client_address }}</td>
+    </tr>
+    <tr>
+        <td>{{ lang.payment_type }}:</td>
+        <td>{{ lang[doc.doc_payment] }}</td>
+    </tr>
+    <tr>
+        <td>{{ lang.additionally }}:</td>
+        <td>{{ doc.doc_client_comment }}</td>
+    </tr>
+    </tbody>
+</table>
+<br><br>
+{{ include('tabledata/promo-netua.html.twig')|raw }}
+</body>
+</html>

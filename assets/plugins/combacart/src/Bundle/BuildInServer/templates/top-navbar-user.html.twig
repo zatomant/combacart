@@ -1,0 +1,60 @@
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+    <div class="offcanvas-header bg-success text-white py-1">
+        <h5 id="offcanvasRightLabel">{{ user.name }}<br><small>{{ user.type }}</small></h5>
+        <button type="button" class="btn-close text-reset d-md-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <hr class="my-0">
+    <div class="offcanvas-body">
+        <ul class="nav dropdown-menu flex-column border-0 w-100">
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span><i class="bi bi-translate"></i></span>
+                    <span class="ms-2">{{ lang.language }}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    {% for l in languages %}
+                        <li>
+                            <a class="dropdown-item" href="{{ l.url }}">{{ l.label }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle" id="bd-theme" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="theme-icon-active"><i class="bi bi-sun-fill use"></i></span>
+                    <span class="ms-2" id="bd-theme-text">{{ lang.theme_switcher }}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <button type="button" class="dropdown-item" data-bs-theme-value="light" aria-pressed="true">
+                            <i class="bi bi-sun-fill use"></i> {{ lang.theme_light }}
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item" data-bs-theme-value="dark" aria-pressed="false">
+                            <i class="bi bi-moon-stars-fill use"></i> {{ lang.theme_dark }}
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item" data-bs-theme-value="auto" aria-pressed="false">
+                            <i class="bi bi-circle-half use"></i> {{ lang.theme_auto }}
+                        </button>
+                    </li>
+                </ul>
+            </li>
+            <li class="border-top my-3"></li>
+            <li>
+                <a href="/manager/index.php?a=8" class="dropdown-item"><i class="bi bi-box-arrow-right"></i> {{ lang.action_exit }}</a>
+            </li>
+        </ul>
+    </div>
+    <hr class="my-0">
+    <div class="container text-center">
+        <span class="text-secondary small">
+            {{ App.name }} {{ App.version }}
+            <br>{{ EVO.full_appname }}
+            <br>&copy; 2022 - {{ "now"|date("Y") }} <a href="https://github.com/zatomant/">zatomant</a>
+        </span>
+    </div>
+</div>

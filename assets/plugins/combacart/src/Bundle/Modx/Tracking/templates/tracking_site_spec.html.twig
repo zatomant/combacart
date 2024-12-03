@@ -1,0 +1,99 @@
+<style>
+    .table td, .table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {
+        padding: 1px !important;
+    }
+
+</style>
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="ottabs-tab1" data-bs-toggle="tab"  data-toggle="tab" href="#ottabs-1" role="tab" aria-controls="ottabs-1" aria-selected="true">Статус замовлення</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="ottabs-tab2" data-bs-toggle="tab" data-toggle="tab" href="#ottabs-2" role="tab" aria-controls="ottabs-2" aria-selected="false">Состав замовлення</a>
+    </li>
+</ul>
+
+<div class="tab-content mb-3" id="myTabContent">
+    <div class="tab-pane fade show active" id="ottabs-1" role="tabpanel" aria-labelledby="ottabs-tab1">
+        <div class="card border-0">
+            <div class="card-body">
+                Поточний статус: замовлення №{{ doc.doc_number }} от {{ doc.doc_date_create }} - <span class="badge badge-pill badge-success">{{ lang['status_'~doc.doc_status] }}</span>
+            </div>
+        </div>
+        {% if doc.delivery != 'dt_pickup' %}
+        {% if doc.doc_delivery_number %}
+        <div class="card">
+            <div class="card-header border-0">
+                <div class="float-end">{{ doc.trackbutton|raw }}</div>
+                <b>Статус доставки {{ doc.delivery_title }}</b>
+            </div>
+            <div class="card-body">{{ doc.trackingservice|raw }}</div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+    <div class="tab-pane fade" id="ottabs-2" role="tabpanel" aria-labelledby="ottabs-tab2">
+        <div class="table-responsive">
+            <table id="orderspectable" name="orderspectable" class="table table-striped table-bordered table-condensed">
+                <thead>
+                <tr>
+                    <th>Артикул</th>
+                    <th>Назва</th>
+                    <th>Кількість</th>
+                    <th>Ціна,грн</th>
+                    <th>Сума,грн</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for spec in doc.doc_specification|filter( spec => spec.docspec_enable == 1 and spec.docspec_ondemand == 0) %}
+                {% if loop.first %}
+                <tr>
+                    <td colspan="5"><strong>Товари в наявності</strong></td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td><a href="{{ spec.docspec_product_weblink }}.html" target=_blank>
+                        <img src="///{{ spec.docspec_product_photo)|replace({'assets/images/':'assets/cache/images/150x150/'})|trim('/',side='left') }}" width="100" height="100" class="lazy">
+                    </a>
+                    </td>
+                    <td>
+                        <a href="{{ spec.docspec_product_weblink }}.html" target=_blank>{{ spec.docspec_product_name }}</a>
+                        <br>
+                        <div class="text-muted">{{ spec.docspec_product_sku }} {{ spec.docspec_comment }}</div>
+                    </td>
+                    <td align="center">{{ spec.docspec_amount|number_format(0) }}</td>
+                    <td align="right">{{ spec.docspec_price|number_format(2) }}</td>
+                    <td align="right">{{ spec.docspec_sum|number_format(2) }}</td>
+                </tr>
+                {% endfor %}
+
+                {% for spec in doc.doc_specification|filter( spec => spec.docspec_ondemand == 1) %}
+                {% if loop.first %}
+                <tr>
+                    <td colspan="5"><strong>Товари під замовлення</strong></td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td><a href="{{ spec.docspec_product_weblink|e }}.html" target=_blank>
+                        <img src="///{{ spec.docspec_product_photo)|replace({'assets/images/':'assets/cache/images/150x150/'})|trim('/',side='left') }}" width="100" height="100" class="lazy">
+                    </a>
+                    </td>
+                    <td>
+                        <a href="{{ spec.docspec_product_weblink }}.html" target=_blank>{{ spec.docspec_product_name }}</a>
+                        <br>
+                        <div class="text-muted">{{ spec.docspec_product_sku }} {{ spec.docspec_comment }}</div>
+                    </td>
+                    <td align="center">{{ spec.docspec_amount|number_format(0) }}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="4" class="text-end">Сума:</td>
+                    <td class="bg-light text-end">{{ doc.doc_sum|number_format(2) }}&nbsp;&#8372;</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

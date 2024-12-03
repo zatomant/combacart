@@ -1,0 +1,24 @@
+{
+  "name": "zatomant/combacart",
+  "description": "Plugin for making an e-commerce or marketplace based on Evolution CMS 1.4+, 3.2+",
+  "keywords": [
+    "e-commerce",
+    "shopcart",
+    "checkout",
+    "marketplace",
+    "modx plugins",
+    "evolution cms plugins"
+  ],
+  "type": "plugins",
+  "minimum-stability": "stable",
+  "license": "GPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "zatomant",
+      "email": "zatomant@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.4"
+  }
+}

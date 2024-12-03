@@ -1,0 +1,27 @@
+{% if marketplace.contact %}
+    <p class="h5 text-center mt-3">Є питання? Пишіть:</p>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 px-3 justify-content-md-center">
+        {% apply spaceless %}
+            {% for c in marketplace.contact|filter(c => not c.invisible and c.type in ['viber','telegram','email']) %}
+                <div class="card text-bg-light mb-3">
+                    <div class="row g-0">
+                        <div class="col text-center align-self-center">
+                            <a class="d-block d-sm-inline" href="
+{% if c.type == 'telegram' %}tg://resolve?domain={% endif %}
+{% if c.type == 'viber' %}tel:+{% endif %}
+{{ c.number }}"><i class="bi bi-{{ c.type }} bi-2x"></i></a>
+                        </div>
+                        <div class="col-12 col-sm-10">
+                            <div class="card-body">
+                                <p class="card-text text-center text-sm-start">{{ c.type }}: <a class="d-block d-sm-inline" href="
+{% if c.type == 'telegram' %}tg://resolve?domain={% endif %}
+{% if c.type == 'viber' %}tel:+{% endif %}
+{{ c.number }}">{{ c.label }}</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endapply %}
+    </div>
+{% endif %}

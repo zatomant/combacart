@@ -1,0 +1,47 @@
+/* Робимо таблиці на всю ширину */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Задаємо межі таблиці */
+table, th, td {
+    border: 1px solid black;
+}
+
+/* Вирівнюємо текст в комірках */
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+
+/* Забираємо фонові кольори і тіні, які можуть неправильно відображатися */
+body, .modal-content {
+    background-color: white !important;
+    box-shadow: none !important;
+    font-size: small;
+}
+
+/* Прибираємо зайві елементи з екрану для друку (якщо треба) */
+.btn, .dropdown, .no-print {
+    display: none !important;
+}
+
+/* Якщо використовуються адаптивні стилі, примусово відображаємо всі елементи */
+.modal-body {
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+.row.row-print {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.col-12, .col-md-6, .col-lg-4 {
+    flex: 0 0 25%; /* Встановлюємо ширину блоків 1/3 на рядок */
+    max-width: 25%;
+}
+.btn, .no-print, button {
+    display: none !important;
+}
