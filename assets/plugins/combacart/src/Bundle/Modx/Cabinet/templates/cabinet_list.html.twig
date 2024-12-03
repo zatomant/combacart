@@ -1,0 +1,131 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+<h4>{{ lang.cabinet_ordersmy }}</h4>
+{% for doc in doclist %}
+    <div class="card mb-2" data-uid="{{ doc.doc_uid }}">
+        <div class="card-body">
+            <div class="row">
+                <div class="col">
+                    <span class="text-muted">{{ lang.num }} {{ doc.doc_number }}</span>
+                </div>
+                <div class="col text-end">
+                    <span class="text-muted small">{{ doc.doc_date_create|replace({':000000': ''})|date("d.m.Y") }}</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-md-4 col-lg-3">
+            <span class="fw-bold
+        {% if doc.doc_status in [3,4] %}
+            text-success
+        {% elseif doc.doc_status == 7 %}
+            text-warning
+        {% elseif doc.doc_status == 5 %}
+            text-muted
+        {% elseif doc.doc_status == 12 %}
+            text-black
+        {% else %}
+            text-primary
+        {% endif %}
+        ">
+                {% if doc.doc_status != 12 %}
+                    {{ lang['status_'~doc.doc_status] }}
+                {% else %}
+                    <i class="bi bi-gender-trans"></i>
+                {% endif %}
+                </span>
+                    {% if doc.doc_status == 2 %}
+                        <a href="{{ macros.linkinvoice(_context,{onlylink:true})|spaceless }}" class="btn {{ btnsize }} btn-primary mb-2"
+                           target="_blank">{{ lang.action_pay }}</a>
+                    {% endif %}
+                </div>
+                <div class="col-6 col-md-4 col-lg-2 text-end text-md-start">
+                    <span class="text-muted">{{ lang.sum }}</span><br>{{ doc.doc_sum|number_format(2, '.', '') }}
+                </div>
+                <div class="col col-md-4 col-lg-auto ms-auto my-auto">
+                    {% if doc.doc_delivery == 'dt_pickup' %}
+                        <span class="text-secondary small">{{ lang[doc.doc_delivery] }}</span>
+                    {% else %}
+                        {% if doc.doc_status in [3,4] %}
+                            {% if doc.doc_delivery_number >0 %}
+                                <a href="{{ macros.linktracking(_context,{onlylink:true})|spaceless }}" class="btn {{ btnsize }} btn-success float-end mb-2"
+                                   target="_blank">
+                                    {{ lang[doc.doc_delivery] }} {{ doc.doc_delivery_number }}
+                                </a>
+                            {% else %}
+                                <span class="text-secondary small">{{ lang[doc.doc_delivery] }} <span class="fw-lighter">{{ lang.delivery_number_empty }}</span></span>
+                                <a href="{{ macros.linktracking(_context,{onlylink:true})|spaceless }}" class="text-success float-end" target="_blank">
+                                    <i class="bi bi-clock-history ms-2"></i>
+                                </a>
+                            {% endif %}
+                        {% elseif doc.doc_status == 2 %}
+                            <span class="text-secondary">{{ lang[doc.doc_delivery] }}</span>
+                        {% elseif doc.doc_status != 7 %}
+                            <span class="text-secondary small">{{ lang[doc.doc_delivery]  }}</span>
+                            <a href="{{ macros.linktracking(_context,{onlylink:true})|spaceless }}" class="text-primary float-end mb-2" target="_blank">
+                                <i class="bi bi-clock-history ms-2"></i>
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <div class="col-12">
+
+                    <div class="accordion accordion-flush" id="spec{{ doc.doc_uid }}">
+                        <div class="accordion-item">
+                            <h5 class="accordion-header">
+                                <button class="accordion-button collapsed p-0 border-0 text-reset bg-transparent" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#spec{{ doc.doc_uid }}i" aria-expanded="false"
+                                        aria-controls="spec{{ doc.doc_uid }}i">
+                                    {{ doc.specs|length }} {{ macros.plurals(doc.specs|length,lang.goods_plurals|split(',')) }}
+                                </button>
+
+                            </h5>
+                            <div id="spec{{ doc.doc_uid }}i" class="accordion-collapse collapse" data-bs-parent="#spec{{ doc.doc_uid }}">
+                                <div class="accordion-body p-0">
+
+                                    {% for spec in doc.specs %}
+                                        <div class="row g-0 my-1 py-1 border-bottom avail-{{ spec.ref_available }}">
+                                            <div class="col-4">
+                                                <a href="{{ spec.docspec_product_weblink }}.html" title="{{ spec.docspec_product_name }}">
+                                                    <picture>
+                                                        <img loading="lazy" data-src="/[[GetImage? &src=`{{ spec.docspec_product_photo }}` &phpthumb=`webp=1` &preset=`goods-tnx`]]"
+                                                             src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII="
+                                                             width="55px"
+                                                             height="55px"
+                                                             alt="{{ spec.docspec_product_name }}" class="img-fluid pe-1 rounded-lg lazy">
+                                                    </picture>
+                                                </a>
+                                            </div>
+                                            <div class="col-8">
+                                                <a {% if spec.ref_available == 0 %}class="text-reset text-decoration-line-through"{% endif %}
+                                                   href="{{ spec.docspec_product_weblink }}.html">{{ spec.docspec_product_name }}</a>
+                                                {% if spec.ref_available == 0 %}
+                                                    <span class="fw-lighter float-end {% if spec.ref_available == 0 %}text-decoration-line-through{% endif %}">{{ spec.docspec_amount }} {{ spec.docspec_measure }}</span>
+                                                    <div class="fw-lighter text-end">{{ lang.goods_status_outofstock }}</div>
+                                                {% else %}
+                                                    <span class="fw-lighter float-end {% if spec.ref_available == 0 %}text-decoration-line-through{% endif %}">{{ spec.docspec_amount }} {{ spec.docspec_measure }} × {{ spec.docspec_price|number_format(2, '.', '') }} {{ doc.currency }}</span>
+                                                    {% if spec.docspec_ondemand == 1 %}
+                                                        <br><span class="badge text-bg-warning float-end">{{ lang.goods_status_ondemand }}</span>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+
+                                    <ul class="list-unstyled text-secondary mb-0">
+                                        <li class="list-item pb-0 px-0 border-0">
+                                            {{ lang.seller }}: <span class="text-body">{{ doc.doc_seller_title }}</span>
+                                        </li>
+                                        <li class="list-item pb-0 px-0">
+                                            {{ lang.payment }}: <span class="text-body">{{ lang[doc.doc_payment] }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    {{ include('cabinet_list_empty.html.twig')|raw }}
+{% endfor %}

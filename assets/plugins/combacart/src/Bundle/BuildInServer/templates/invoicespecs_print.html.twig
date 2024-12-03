@@ -1,0 +1,9 @@
+{% for spec in doc.specs|filter(spec => spec.docspec_enable > 0) %}
+    <td>{{ loop.index }}</td>
+    <td>{{ spec.docspec_product_sku }}</td>
+    <td>{{ spec.docspec_product_name }}</td>
+    <td>{{ spec.docspec_amount|number_format }}</td>
+    <td valign="right">{{ spec.docspec_price|number_format(2) }}</td>
+    <td valign="right">{{ spec.docspec_sum|number_format(2) }}</td>
+    </tr>
+{% endfor %}

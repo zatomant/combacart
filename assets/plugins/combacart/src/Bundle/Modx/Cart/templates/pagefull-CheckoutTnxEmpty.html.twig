@@ -1,0 +1,66 @@
+{% import '/macro/htmltag.html.twig' as macros %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Дякуємо за замовлення | {{ marketplace.label }}</title>
+    <meta name="robots" content="noindex,nofollow">
+    <meta property="og:image" content="{{ marketplace.icon }}">
+    <meta property="og:title" content="{{ marketplace.label }} ">
+    <meta property="og:description" content="">
+    <meta property="og:image:width" content="262">
+    <meta property="og:image:height" content="262">
+    <meta property="og:url" content="">
+    <link rel="manifest" href="/assets/images/favicon/site.webmanifest">
+    <link rel="dns-prefetch" href="//google-analytics.com/">
+    <link rel="preconnect" href="//google-analytics.com/">
+    <link rel="dns-prefetch" href="//stats.g.doubleclick.net/">
+    <style>
+        body, .card {
+            background-color: #eee7ee !important;
+        }
+
+        .bgg {
+            background-color: #fff !important;
+        }
+    </style>
+
+</head>
+<body>
+<div class="container mw-100 px-0">
+    <article class="card">
+        <header class="card-header d-flex align-items-center bgg" style="background-color: #4b2f4f !important; color: #fccb04;">
+            <a href="/" class="text-uppercase me-2">{{ marketplace.label }}</a> | Дякуємо за замовлення
+            <div class="ms-auto">
+                <a href="/account" style="color:#408aca;"><i class="bi bi-person bi-2x"></i></a>
+            </div>
+        </header>
+        <div class="card-body">
+            {{ include(['chunk-CheckoutTnxEmpty_' ~ lang ~ '.html.twig', 'chunk-CheckoutTnxEmpty.html.twig']) }}
+        </div>
+    </article>
+</div>
+
+<noscript id="deferred-styles">
+    <link rel="stylesheet" type="text/css" href="/assets/plugins/combacart/vendor/twbs/bootstrap/dist/css/bootstrap.min.css??v523"/>
+    <link rel="stylesheet" type="text/css" href="/src/Themes/templates/v4/css/style.min.css?v20220706"/>
+    <link rel="stylesheet" type="text/css" href="/assets/plugins/combacart/vendor/twbs/bootstrap-icons/font/bootstrap-icons.css"/>
+</noscript>
+<script>
+    const loadDeferredStyles = function () {
+        const addStylesNode = document.getElementById("deferred-styles");
+        const replacement = document.createElement("div");
+        replacement.innerHTML = addStylesNode.textContent;
+        document.body.appendChild(replacement)
+        addStylesNode.parentElement.removeChild(addStylesNode);
+    };
+    const raf = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+        window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+    if (raf) raf(function () {
+        window.setTimeout(loadDeferredStyles, 0);
+    });
+    else window.addEventListener('load', loadDeferredStyles);
+</script>
+</body>
+</html>

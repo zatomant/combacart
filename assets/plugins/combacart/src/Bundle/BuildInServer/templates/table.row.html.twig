@@ -1,0 +1,51 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+{% for dl in doc.docs %}
+    <tr data-docuid="{{ dl.doc_uid }}" class="datacontainer selectabled status status-{{ dl.doc_status }}">
+        <td class="opener">{{ dl.doc_number }}</td>
+        <td>{{ dl.doc_date_create|replace({':000000': ''})|date("d.m.Y H:i") }}</td>
+        <td>
+            {{ dl.doc_client_name }}  {{ dl.doc_client_address }}
+            <br>{{ dl.doc_client_email }}
+            <a href="tel:{{ dl.doc_client_phone }}">{{ dl.doc_client_phone|formatphone }}</a>
+            <br>
+            {{ lang[dl.doc_delivery] }}, {{ lang[dl.doc_payment] }}
+        </td>
+        <td>
+            <span class="badge text-bg-success">{{ dl.doc_seller_title }}</span>
+            <br>
+            <span class="small text-secondary">{{ dl.doc_payee_title }}</span>
+        </td>
+        <td>
+            {% if dl.signs|column('type')|filter(v => v == 2) and dl.doc_paysum > 0 and dl.doc_sum > 0 and dl.doc_sum != dl.doc_paysum %}
+                {{ dl.doc_paysum|number_format(2, '.', '') }}
+                <br><span class="text-secondary"><s>{{ dl.doc_sum|number_format(2, '.', '') }}</s></span>
+            {% else %}
+                {{ dl.doc_sum|number_format(2, '.', '') }}
+            {% endif %}
+        </td>
+        <td>
+            <span class="fst-italic">{{ dl.doc_client_comment }}</span>
+            <br>{{ dl.doc_manager_comment }}
+            <div class="d-block">
+                <div class="float-end">
+                    {% if not dl.signs|column('type')|filter(v => v == 6) %}
+                        {{ macros.btntracking(dl,true, 'outline-warning') }}
+                    {% elseif not dl.signs|column('type')|filter(v => v == 3) %}
+                        {{ macros.btntracking(dl,true, 'outline-info') }}
+                    {% else %}
+                        {{ macros.btntracking(dl,true) }}
+                    {% endif %}
+                </div>
+                {{ macros.btnprint() }}
+                {{ macros.btnmessenger() }}
+            </div>
+        </td>
+        <td class="opener">{{ lang['status_'~dl.doc_status] }}</td>
+    </tr>
+{% endfor %}
+{% if not doc.docs %}
+    <tr>
+        <td colspan="8" class="text-center">{{ lang.table_isempty }}</td>
+    </tr>
+{% endif %}
+

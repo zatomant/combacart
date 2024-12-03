@@ -1,0 +1,105 @@
+<style>
+    @media print {
+    {{ include ('print/print.css') }}
+    }
+</style>
+<div id="carouselExampleCaptions" class="carousel slide" data-bs-wrap="false" style="background: inherit;">
+    <div class="carousel-indicators mb-0 d-none">
+        {% for specrow in doc.specs %}
+            {% if loop.first %}
+                <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="{{ loop.index0 }}" class="active" aria-current="true"
+                        aria-label="{{ specrow.docspec_product_name }}"></button>
+            {% else %}
+                <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="{{ loop.index0 }}" aria-label="{{ specrow.docspec_product_name }}"></button>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="carousel-inner" style="m1ax-height:500px;">
+        {% for specrow in doc.specs %}
+            <div class="carousel-item {% if loop.first %} active {% endif %} text-center">
+                <img height="350" class="image-fluid"
+                     src="/{{ specrow.ref_image|default(specrow.docspec_product_photo)|replace({'assets/images/':'assets/cache/images/250x250_1x1-checkout/'})|trim('/',side='left') }}"
+                     alt="{{ specrow.docspec_product_name }}">
+                <div class="carousel-caption pb-0 position-static {% if specrow.docspec_enable == 0 %}text-bg-secondary{% else %}text-bg-primary{% endif %}" style="height:200px">
+                    <div class="row h-100 align-items-end">
+                        <div class="col-12 align-selt-start">
+                            <h3>
+                                {% if specrow.docspec_enable == 0 %}
+                                    <s>{{ specrow.docspec_product_name|raw }}</s>
+                                {% else %}
+                                    {{ specrow.docspec_product_name|raw }}
+                                {% endif %}
+                            </h3>
+                        </div>
+                        <div class="col-6 fs-3">{{ specrow.docspec_price|number_format(2) }}</div>
+                        <div class="col-6 fs-2"><b>{{ specrow.docspec_amount|number_format(0) }} шт</b></div>
+                        <div class="col-12 mb-0 fs-5">
+                            {% if specrow.ipiw_amount %}
+                                {% if specrow.ipiw_amount <=0 and specrow.ipiw_amount < specrow.docspec_amount %}
+                                    <div class="text-bg-danger text-center">
+                                        немає на складі
+                                    </div>
+                                {% elseif specrow.ipiw_amount < specrow.docspec_amount %}
+                                    <div class="text-bg-warning text-center">
+                                        {{ specrow.ipiw_amount|round(1) }} {{ specrow.ipiw_measure }} на складі
+                                    </div>
+                                {% else %}
+                                    <div class="border-top text-center">
+                                        {{ specrow.ipiw_amount|round(1) }} {{ specrow.ipiw_measure }} на складі
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<h3 class="mt-4 text-bg-light">{{ doc.doc_number }} {{ doc.doc_client_name }}</h3>
+<h3 class="mt-4 text-bg-light">Повний перелік товарів:</h3>
+{% for specrow in doc.specs %}
+    <div class="row border mx-0">
+        <div class="col-1 p-0">
+            <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="{{ loop.index0 }}"
+                    class="btn btn-light w-100 h-100 rounded-0">{{ loop.index }}</button>
+        </div>
+        <div class="col">
+            {% if specrow.docspec_enable == 0 %}
+                <s>{{ specrow.docspec_product_name }}</s>
+            {% else %}
+                {{ specrow.docspec_product_name }}
+            {% endif %}
+            <div class="d-block small text-success">{{ specrow.docspec_price|number_format(2) }}</div>
+        </div>
+        <div class="col-4 border-start text-center">
+            <div class="row">
+                <div class="col-12 col-md-6 border-end">
+                    <p class="fs-3 mb-0">{{ specrow.docspec_amount|number_format(0) }} шт</p>
+                </div>
+                <div class="col small d-block
+        {% if specrow.ipiw_amount %}
+        {% if specrow.ipiw_amount <=0 and specrow.ipiw_amount < specrow.docspec_amount %}
+            text-bg-danger text-center">
+                    {% elseif specrow.ipiw_amount < specrow.docspec_amount %}
+                        text-bg-warning text-center">
+                    {% else %}
+                        text-secondary text-center">
+                    {% endif %}
+                    {{ specrow.ipiw_amount|round(1) }} {{ specrow.ipiw_measure }}<br>на складі
+                    {% else %} ">
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}

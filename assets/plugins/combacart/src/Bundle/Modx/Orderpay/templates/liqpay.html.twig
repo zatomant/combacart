@@ -1,0 +1,24 @@
+{% if pt.ptcontent %}
+<div class="card border-0 bgg mt-3">
+    <div class="card-body border-0 p-0 ">
+        <div class="card align-items-center my-3 col-sm-12 col-md-5">
+            <div class="card-body text-center mb-2">
+                {{ lang.payment_bank_note_inline }}{{ doc.doc_number }}
+                <br>
+                {{ lang.payment_bank_amount|lower }}
+                <p class="h5"><strong>{{ doc.doc_paysum|number_format(2, '.', '') }} грн</strong></p>
+                {{ pt.ptcontent|raw }}
+            </div>
+            <div class="card-footer">
+                <p class="small text-center text-secondary mb-0">Натиснув кнопку <span class="fw-bold">"Сплатити"</span>, ви будете перенаправлені на сайт здійснення онлайн платежів
+                    LiqPay</p>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <img src="https://static.liqpay.ua/pay/140605140723/img/sprite_footer.png" border="0" alt="Liqpay online payment">
+    </div>
+</div>
+{% else %}
+    {{ include ('pt_online_disabled.html.twig') }}
+{% endif %}

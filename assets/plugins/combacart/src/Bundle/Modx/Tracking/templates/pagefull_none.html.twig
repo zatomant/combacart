@@ -1,0 +1,11 @@
+{% extends "pagefull.html.twig" %}
+{% block status %}
+    <div class="card bgg">
+        <div class="card-body">
+            {{ include('none.html.twig')|raw }}
+        </div>
+    </div>
+{% endblock %}
+{% block helper %}
+    {{ parent() }}
+{% endblock %}

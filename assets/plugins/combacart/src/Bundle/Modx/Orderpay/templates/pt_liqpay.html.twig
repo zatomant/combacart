@@ -1,0 +1,16 @@
+<div class="col py-2">
+    <h5>Oплата замовлення №{{ doc.doc_number }} (сплата через Інтернет картою банку)</h5>
+</div>
+<div class="col">
+    Сума до сплати складається з суми замовлення {{ doc.doc_paysum|number_format(2, '.', '') }} грн і 2.75% (мін 3 грн) комісії банку за послуги онлайн оплати.
+    <br><br>
+    <p class="h5">Сума до сплати: {{ doc.topaysum|number_format(2, '.', '')}} грн</p>
+    {{ doc.pt_liqpay.txt_liqpay|raw }}
+    <br>Натиснув кнопку Сплатити, ви будете перенаправлені на сайт здійснення онлайн-платежів LiqPay (ПриватБанк).
+    <br><br>
+    <b>Ви можете вибрати закладку "Сплата на р/р)" щоб сплатити через платіжне доручення банку.</b>
+    <br><br>
+</div>
+<div class="col">
+    <img src="https://static.liqpay.ua/pay/140605140723/img/sprite_footer.png" border="0">
+</div>

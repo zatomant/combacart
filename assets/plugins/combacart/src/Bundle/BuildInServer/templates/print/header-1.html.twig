@@ -1,0 +1,50 @@
+<table class="table table-bordered text-center table-sm">
+    <tbody>
+    <tr>
+        <td>
+            <div><small>{{ doc.doc_date_create }}</small></div>
+            <div class="number">{{ doc.doc_number }}</div>
+            {{ doc.doc_status_label }}<br>
+            {% if doc.doc_delivery_number %}
+                {{ doc.doc_delivery_number|formatBarcode | raw }}<br>
+            {% endif %}
+            {{ doc.doc_delivery_number }}<br>
+        </td>
+        <td>{{ lang[doc.doc_delivery] }}<br>
+            {% if doc.seller.contact is iterable %}
+                {% for elem in doc.seller.contact|filter(elem => elem.invisible is null) %}
+                    {% if elem.type == 'barcode' %}
+                        {% if elem.subtype == doc.doc_delivery %}
+                            {{ elem.number |formatBarcode | raw }}<br>{{ elem.number }}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </td>
+        <td class="col-auto">
+            {% if doc.doc_client_address %}{{ doc.doc_client_address }}<br>{% endif %}
+            {{ doc.doc_delivery_client_name }}<br>{{ doc.doc_delivery_client_phone|formatphone }}<br>
+            {% if doc.doc_client_usebonus == 1 %}
+                використовувати бонуси,
+            {% endif %}
+            {% if doc.doc_client_dncall == 1 %}
+                не передзвонювати якщо все є
+            {% endif %}
+        </td>
+        <td {% if doc.doc_payment == 'pt_cod' %} class="border border-danger"{% endif %}>
+            {{ lang[doc.doc_payment] }}
+            <br>{{ num2str ({'v': doc.doc_paysum,'n2n':""}) }}
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4">
+            {% if doc.doc_client_comment %}<i>{{ doc.doc_client_comment }}</i><br>{% endif %}{{ doc.doc_manager_comment }}
+            {% if doc.signs|column('type')|filter(v => v == 2) %}
+                {% for sign in doc.signs|filter(v => v.type == 2) %}
+                    <br>{{ lang.status_2 }} {{ sign.date }} {{ sign.par_name_first }}
+                {% endfor %}
+            {% endif %}
+        </td>
+    </tr>
+    </tbody>
+</table>
