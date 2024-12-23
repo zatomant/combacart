@@ -1,11 +1,11 @@
  /**
  * goods_inbalances
  *
- * Враховується в залишках чи ігнорується
+ * Перевірка доступності за залишками
  *
  * @category        tv
  * @name            goods_inbalances
- * @internal        @caption Враховується в залишках
+ * @internal        @caption Контроль залишків
  * @internal        @input_type checkbox
  * @internal        @input_options Так==1
  * @internal        @input_default 0
