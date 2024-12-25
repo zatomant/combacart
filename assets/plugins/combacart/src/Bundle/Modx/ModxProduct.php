@@ -181,9 +181,13 @@ class ModxProduct extends ModxOptions
 
                 }
                 if (isset($modxobject[GOODS_ISONDEMAND][1]) && $modxobject[GOODS_ISONDEMAND][1] > 0) {
-                    if ($item[GOODS_AVAIL] == 1 || $item[GOODS_AVAIL] == 3) $item[GOODS_AVAIL] = 3;
+                    if ($item[GOODS_AVAIL] == 1 || $item[GOODS_AVAIL] == 3) {
+                        $item[GOODS_AVAIL] = 3;
+                    }
                 }
-                if (empty($modxobject[GOODS_AVAIL][1]) || empty($price)) $item[GOODS_AVAIL] = 0;
+                if (empty($modxobject[GOODS_AVAIL][1]) || empty($price)) {
+                    $item[GOODS_AVAIL] = 0;
+                }
 
                 $ondemand = $item[GOODS_AVAIL] == 3 ? 1 : 0;
 
