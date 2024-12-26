@@ -45,9 +45,9 @@ class Parser
         $this->_engine = new Environment(
             $this->_loader,
             array(
-                /*      'cache' => 'cache', */
+                //'cache' => 'cache',
                 'auto_reload' => true,
-                 'debug' => true
+                // 'debug' => true
             )
         );
         $this->addExtension(new IntlExtension());
