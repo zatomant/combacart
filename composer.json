@@ -7,7 +7,8 @@
     "checkout",
     "marketplace",
     "modx plugins",
-    "evolution cms plugins"
+    "evolution cms plugins",
+    "evo cms plugins"
   ],
   "type": "library",
   "license": "GPL-3.0-or-later",
