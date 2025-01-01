@@ -10,8 +10,6 @@
     "evolution cms plugins"
   ],
   "type": "library",
-  "minimum-stability": "dev",
-  "prefer-stable": true,
   "license": "GPL-3.0-or-later",
   "authors": [
     {
@@ -19,7 +17,6 @@
       "email": "zatomant@gmail.com"
     }
   ],
-  "require": {
-    "php": ">=7.4"
-  }
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
