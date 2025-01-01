@@ -21,12 +21,5 @@
     "php": ">=7.4"
   },
   "minimum-stability": "dev",
-  "prefer-stable": true,
-    "extra": {
-        "installer-paths": {
-            "assets/plugins/combacart/": [
-                "zatomant/combacart"
-            ]
-        }
-    }
+  "prefer-stable": true
 }
