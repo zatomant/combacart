@@ -2,6 +2,11 @@
 
 date_default_timezone_set('Europe/Kyiv');
 
+const COMBAMODX_NAME = 'CombaCart';
+const COMBAMODX_TDS = 'FS';
+const COMBAMODX_FILE_VER = '20';
+const COMBAMODX_VERSION = '2.6.' . COMBAMODX_FILE_VER . ' ' . COMBAMODX_TDS;
+
 // термін актуальності кешованих даних кліента за замовчуванням
 const COMBAMODX_CACHE_LIFETIME = 2592000; // 60*60*24* 30 діб
 

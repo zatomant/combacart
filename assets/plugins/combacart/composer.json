@@ -1,13 +1,13 @@
 {
   "name": "zatomant/combacart",
-  "description": "CombaCart free e-commerce plugin for Evo/ModX",
+  "description": "Плагін для швидкого запуску інтернет магазину на Evolution CMS (EVO)",
   "keywords": [
     "combacart","ecommerce","cart","checkout"
   ],
   "type": "library",
   "license": "MIT",
-  "version": "0.2.5",
-  "version_short": "0.2",
+  "version": "2.6.20",
+  "version_short": "2.6",
   "authors": [
     {
       "name": "Maxim Yurchenko"

@@ -22,11 +22,6 @@ use function Comba\Functions\sanitize;
 use function Comba\Functions\sanitizeID;
 use function Comba\Functions\array_search_by_key;
 
-const COMBAMODX_NAME = 'CombaCart';
-const COMBAMODX_TDS = 'FS';
-const COMBAMODX_FILE_VER = '19';
-const COMBAMODX_VERSION = '2.6.' . COMBAMODX_FILE_VER . ' ' . COMBAMODX_TDS;
-
 class Manager extends ModxOptions
 {
 
