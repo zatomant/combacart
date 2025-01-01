@@ -10,7 +10,6 @@
     "evolution cms plugins"
   ],
   "type": "plugins",
-  "minimum-stability": "stable",
   "license": "GPL-3.0-or-later",
   "authors": [
     {
