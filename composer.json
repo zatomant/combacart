@@ -9,7 +9,9 @@
     "modx plugins",
     "evolution cms plugins"
   ],
-  "type": "EvolutionCMS-Plugin",
+  "type": "library",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "license": "GPL-3.0-or-later",
   "authors": [
     {
@@ -19,7 +21,5 @@
   ],
   "require": {
     "php": ">=7.4"
-  },
-  "minimum-stability": "dev",
-  "prefer-stable": true
+  }
 }
