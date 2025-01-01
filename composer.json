@@ -9,7 +9,7 @@
     "modx plugins",
     "evolution cms plugins"
   ],
-  "type": "plugins",
+  "type": "EvolutionCMS-Plugin",
   "license": "GPL-3.0-or-later",
   "authors": [
     {
