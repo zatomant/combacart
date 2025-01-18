@@ -1,0 +1,52 @@
+﻿{% import "/macro/htmltag.html.twig" as macros %}
+<html>
+<head></head>
+<body>
+{% if doc.doc_delivery_number %}
+    <table width="100%" cellspacing="0">
+        <tbody>
+        <tr>
+            <td width="25%"><b>Номер декларації:</b></td>
+            <td><font size="+2">{{ doc.doc_delivery_number|formatdeclaration }}</font></td>
+        </tr>
+        <tr>
+            <td>
+                <b>lang.delivery_type:</b>
+            </td>
+            <td>
+                {{ lang[doc.doc_delivery] }}
+            </td>
+        </tr>
+        {% if doc.doc_payment == 'pt_cod' %}
+            <tr>
+                <td colspan="2">
+                    <br><strong><font size="-1">Зверніть увагу, вантаж бажано забрати протягом п'яти (!) днів з моменту прибуття на ваше відділення.</font></strong>
+                </td>
+            </tr>
+        {% endif %}
+        </tbody>
+    </table>
+    <br><br>
+{% endif %}
+{{ include('tabledata/daily-appeal-ua.html.twig')|clearEOF|raw }} {{ macros.formatname(doc.doc_delivery_client_name) }}.
+
+<br><br>
+{% if doc.doc_delivery_number %}
+    Раді повідомити - товари по замовленню №{{ doc.doc_number }} вже на шляху до вас :)
+    <br><br>
+    Дізнатись де вантаж ви зможете за посиланням {{ macros.linktracking(_context) }} або на сайті {{ lang[doc.doc_delivery]  }}.
+    <br>Після того як оператор {{ lang[doc.doc_delivery] }} актуалізує дані ви зможете відстежити відправлення на сайті.
+    <br><br>
+    <strong>Важливо!</strong> Інформування на телефон від {{ lang[doc.doc_delivery] }} може і не бути, тому краще відстежуйте відправлення самостійно через сайт оператора доставки.
+    <br><br><strong>При отриманні товару необхідно перевірити його цілісність безпосередньо у відділенні пошти. При виявленні пошкоджень - зверніться до оператора доставки для
+    складання Акту претензії, щоб не втратити право на компенсацію та повернення товару.
+</strong>
+{% else %}
+    Зазвичай цим листом ми повідомляємо номер декларації відправлення, але наразі такий номер відсутній.
+    <br>Тому вважайте цей лист як <i>"помилково надісланий"</i>.
+    <br>Просимо вибачення за незручність.
+{% endif %}
+<br><br>
+{{ marketplace.label }}
+</body>
+</html>

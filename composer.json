@@ -1,0 +1,39 @@
+{
+  "name": "zatomant/combacart",
+  "description": "Плагін для швидкого запуску інтернет магазину на Evolution CMS (EVO)",
+  "keywords": [
+    "combacart","ecommerce","cart","checkout"
+  ],
+  "type": "library",
+  "license": "MIT",
+  "version": "2.6.30",
+  "version_short": "2.6",
+  "authors": [
+    {
+      "name": "Maxim Yurchenko",
+      "email": "zatomant@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "ext-intl": "*",
+    "twig/twig": "^3.1",
+    "twig/intl-extra": "^3.1",
+    "ext-json": "*",
+    "symfony/mailer": "^5.4",
+    "claviska/simpleimage": "^3.6",
+    "twbs/bootstrap": "^5.3",
+    "twbs/bootstrap-icons": "^1.11",
+    "tecnickcom/tc-lib-barcode": "^1.17",
+    "plakidan/monobank-pay": "^0.2.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Comba\\Core\\": "src/Core/",
+      "Comba\\Bundle\\": "src/Bundle/"
+    },
+    "classmap": [
+      "assets/lib/"
+    ]
+  }
+}

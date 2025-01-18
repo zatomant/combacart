@@ -1,0 +1,43 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+{{ include('tabledata/daily-appeal-ua.html.twig')|clearEOF|raw }} {{ macros.formatname(doc.doc_client_name) }}.
+<br><br>
+{% if doc.doc_paysum > 0 %}
+    Ваше замовлення прийняте та чекає оплати.
+    {% if doc.payee %}
+        <br><br>
+        Для здійснення оплати через банк (<b>Монобанк, Пумб, Ощадбанк, Альфабанк, тощо</b>) обов'язково використовуйте наступні банківські реквізити:
+        {% for pt in doc.payee.pt|filter(pt => pt.type == 'pt_cashless') %}
+            <table class="table table-bordered" style="table-layout: fixed; width: 100%">
+                <tr>
+                    <td>{{ lang.payment_bank_recipient }}:</td>
+                    <td>{{ pt.label }}</td>
+                </tr>
+                <tr>
+                    <td>{{ lang.payment_bank_iban }}:</td>
+                    <td>{{ pt.account }}</td>
+                </tr>
+                <tr>
+                    <td>{{ lang.payment_bank_usr }}:</td>
+                    <td>{{ pt.okpo }}</td>
+                </tr>
+                <tr>
+                    <td>{{ lang.payment_bank_amount }}:</td>
+                    <td><b>{{ doc.doc_paysum|number_format(2, '.', '') }} грн</b></td>
+                </tr>
+                <tr>
+                    <td>{{ lang.payment_bank_note }}:</td>
+                    <td><b>{{ lang.payment_bank_note_inline }}{{ doc.doc_number }}</b></td>
+                </tr>
+            </table>
+        {% endfor %}
+        {% for pt in doc.payee.pt|filter(pt => pt.type == 'pt_online')|slice(0,1) %}
+            Для здійснення <strong>онлайн оплати</strong> пройдіть <a href="{{ macros.linkinvoice(_context,{onlylink:true}) }}">за посиланням та виберіть</a> зручний для вас варіант.
+        {% endfor %}
+    {% endif %}
+{% else %}
+    {{ include('paysum_none.html.twig')|clearEOF|raw }}
+{% endif %}
+<br><br>
+{{ marketplace.label }}
+<br>
+<a href="//{{ marketplace.site }}">{{ marketplace.site }}</a>

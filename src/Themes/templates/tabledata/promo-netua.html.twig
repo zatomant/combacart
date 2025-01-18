@@ -1,0 +1,13 @@
+﻿{% if marketplace.links is iterable %}
+    <b>{{ marketplace.label }} в соцмережах:</b>
+    {% for elem in marketplace.links|filter(elem => elem.invisible is null) %}
+        {% if elem.icon %}
+            <br><a href="https://{{ elem.url }}"><img src="https://{{ marketplace.site }}{{ elem.icon }}" alt="{{ marketplace.label }} в {{ elem.name }}"> {{ elem.label }}</a>
+        {% else %}
+            {% if elem.name.youtube %}
+                PS: Ви вже бачили наше нове відео на Youtube?. Заходьте <a href="https://{{ elem.url }}">{{ elem.label }}</a>
+            {% endif %}
+            <br>{{ marketplace.label }} в {{ elem.name }} - <a href="https://{{ elem.url }}">{{ elem.label }}</a>
+        {% endif %}
+    {% endfor %}
+{% endif %}

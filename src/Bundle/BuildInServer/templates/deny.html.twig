@@ -1,0 +1,18 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Cache-Control" content="private, max-age=3600">
+    <title>№{{ doc.doc_number }} {{ doc.doc_client_name }}</title>
+</head>
+<body>
+<div class="text-center">
+    <div class="card text-bg-warning">
+        <div class="card-body">
+            <h3>{{ lang.error_deny }}</h3>
+            <p>{{ lang.error_deny_seller }} <b>{{ doc.doc_seller_title }}</b></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+﻿<html>
+<head></head>
+<body>
+<table width="100%" cellspacing="0" bgcolor="#F9FFEC">
+    <tbody>
+    <tr>
+        <td width="65%">
+            <strong>{{ lang.request}} {{ lang.num }}{{ doc.doc_number }} {{ lang.of }} {{ doc.doc_date_create|date("d.m.Y H:i") }} | {{ marketplace.label }}</strong>
+        </td>
+        <td nowrap="" align="center" bgcolor="#DFE7C0">
+            <strong>{{ lang[doc.doc_delivery] }}<br>{{ lang[doc.doc_payment] }}</strong></td>
+    </tr>
+    </tbody>
+</table>
+<table cellpadding="3">
+    <tbody>
+    <tr>
+        <td colspan="2">&nbsp;</td>
+    </tr>
+    <tr>
+        <td colspan="2"><b>{{ lang.specs }}:</b></td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            {% for dl in doc.specs %}
+            {{ dl.docspec_product_sku }} <a href="https://{{ marketplace.site }}/{{ dl.docspec_product_weblink }}">{{
+            dl.docspec_product_name }}</a> {{ dl.docspec_price|number_format(2) }} грн * {{
+            dl.docspec_amount|number_format(0) }}шт<br>
+            {% endfor %}
+            <br><b>{{ lang.summary }}: {{ doc.doc_sum|number_format(2) }}</b></td>
+    </tr>
+    </tbody>
+</table>
+
+<table width="100%" cellspacing="5" bgcolor="#F9FFEC">
+    <tbody>
+    <tr>
+        <td colspan="2">&nbsp;</td>
+    </tr>
+    <tr>
+        <td width="25%">{{ lang.customer }}:</td>
+        <td>{{ doc.doc_client_name }} {{ doc.doc_client_phone }}
+            <a href="mailto:{{ doc.doc_client_email }}">{{ doc.doc_client_email }}</a>
+        </td>
+    </tr>
+    <tr>
+        <td>{{ lang.delivery_type }}:</td>
+        <td>{{ lang[doc.doc_delivery] }}</td>
+    </tr>
+    <tr>
+        <td>{{ lang.delivery_to}}:</td>
+        <td>{{ doc.doc_client_address }}</td>
+    </tr>
+    <tr>
+        <td>{{ lang.payment_type }}:</td>
+        <td>{{ lang[doc.doc_payment] }}</td>
+    </tr>
+    <tr>
+        <td>{{ lang.additionally }}:</td>
+        <td>{{ doc.doc_client_comment }}</td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<div class="modal fade" id="dlgSupport" tabindex="-1" aria-labelledby="dlgSupportLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title fs-5" id="dlgSupportLabel">{{ lang.assistance_now }}</h3>
+                <button type="button" class="btn-close border-0 text-primary bg-white" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="bi bi-x iconuser d-none"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="fw-light">
+                    Наші менеджери зможуть допомогти з оформленням замовлення, зазвичай для цього потрібно:
+                <ul>
+                    <li>наявність товарів в кошику та сума замовлення</li>
+                    <li>прізвище та ім'я замовника</li>
+                    <li>адреса доставки</li>
+                </ul>
+                </p>
+                <p class="fw-light">
+                    Тому, додавайте товари в кошик та пишіть:
+                <ul class="list-unstyled text-center">
+                    {% if marketplace.contact is iterable %}
+                        {% for elem in marketplace.contact|filter(elem => elem.invisible is null)|sort %}
+                            {% if elem.type == 'telegram' %}
+                                <li><a href="{{ elem.url }}" class="btn btn-primary"><i class="bi bi-telegram pe-2"></i>{{ elem.label }}</a></li>
+                            {% endif %}
+                            {% if elem.type == 'instagram' %}
+                                <li>в директ <a href="{{ elem.url }}" class="btn btn-primary" target="_blank"><i class="bi bi-send-fill pe-2"></i>{{ elem.label }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
