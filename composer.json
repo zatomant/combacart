@@ -6,7 +6,7 @@
   ],
   "type": "library",
   "license": "MIT",
-  "version": "2.6.30",
+  "version": "2.6.31",
   "version_short": "2.6",
   "authors": [
     {
@@ -16,7 +16,6 @@
   ],
   "require": {
     "php": ">=7.4",
-    "ext-intl": "*",
     "twig/twig": "^3.1",
     "twig/intl-extra": "^3.1",
     "ext-json": "*",

@@ -10,7 +10,7 @@ class Entity
     // Основні параметри
     public const NAME = 'CombaCart';
     public const TDS = 'FS';
-    public const FILE_VER = '30';
+    public const FILE_VER = '31';
     public const VERSION = '2.6.' . self::FILE_VER . ' ' . self::TDS;
 
     // Термін актуальності кешованих даних клієнта за замовчуванням (30 днів у секундах)
