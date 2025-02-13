@@ -36,7 +36,7 @@ EVO CMS 1.4+ або Evolution CMS 3.+ [github.com](https://github.com/evolution-
 
 ## Встановлення ##
 
-Для нового встановлення рекомендую використовувати готовий пакет CombaCart extras, якій підготовлено саме для модуля Extras в Evolution CMS.  
+Для нового встановлення рекомендую використовувати пакет CombaCart extras, якій підготовлено як файл для модуля Extras в Evolution CMS.  
 Перейдіть на сторінку CombaCart extras, щоб дізнатись подробиці [github.com](https://github.com/zatomant/combacart-extras)    
 
 ## Оновлення CombaCart ##  
