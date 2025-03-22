@@ -28,21 +28,6 @@ class Options
         }
     }
 
-    /** Визначення мови в рядку запиту
-     * @return string|null
-     */
-    public function detectLanguage(): ?string
-    {
-        $url = getenv('REQUEST_URI');
-        if (substr($url, 0, 1) === '/' && substr($url, 3, 1) == '/') {
-            $lang = substr($url, 1, 2);
-            if (!empty($lang) && ctype_alpha($lang)) {
-                $this->setOptions('language', sanitizeID($lang));
-            }
-        }
-        return $this->getOptions('language');
-    }
-
     /** Ініціалізація та заватаження перекладу
      * @return $this
      */
@@ -68,12 +53,19 @@ class Options
         return $this;
     }
 
-    /** Повертає масив перекладу
-     * @return array
+    /** Визначення мови в рядку запиту
+     * @return string|null
      */
-    public function getLang(): array
+    public function detectLanguage(): ?string
     {
-        return $this->lang;
+        $url = getenv('REQUEST_URI');
+        if (substr($url, 0, 1) === '/' && substr($url, 3, 1) == '/') {
+            $lang = substr($url, 1, 2);
+            if (!empty($lang) && ctype_alpha($lang)) {
+                $this->setOptions('language', sanitizeID($lang));
+            }
+        }
+        return $this->getOptions('language');
     }
 
     /**
@@ -142,6 +134,14 @@ class Options
         return array_key_exists($param, $this->_options);
     }
 
+    /** Повертає масив перекладу
+     * @return array
+     */
+    public function getLang(): array
+    {
+        return $this->lang;
+    }
+
     /**
      * Alias function for options 'lasterror'
      */
@@ -150,13 +150,27 @@ class Options
         return $this->getOptions('lasterror', false);
     }
 
-    public function isBot(): bool
+    /**
+     * Повертає назву та версію браузера що робить запити до сайту
+     * або назву за замовчуванням, якщо не визначено браузер
+     */
+    public function getAgent(string $default = 'bot'): string
     {
-        $agent = !empty(getenv('HTTP_USER_AGENT')) ? getenv('HTTP_USER_AGENT') : 'bot';
-        return (
-            $agent
-            && preg_match('/bot|bots|crawl|slurp|spider|mediapartners|Lighthouse|FacebookExternalHit|Datanyze|Headless|Rippers|zgrab|Siteimprove|SemrushBot|PetalBot/i', $agent)
-        );
+        $browser = new \WhichBrowser\Parser(getallheaders());
+        if (!empty($browser)) {
+            $default = $browser->toString();
+        }
+
+        return $default;
+    }
+
+    /** Визначає хто робить запит до сайту
+     * @param string|null $agent
+     * @return bool
+     */
+    public function isBot(string $agent = null): bool
+    {
+        return (new \Jaybizzle\CrawlerDetect\CrawlerDetect())->isCrawler($agent);
     }
 
     /**

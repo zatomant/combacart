@@ -460,8 +460,9 @@ class Server extends ModxOptions
         if ($_doc['Document']['doc_delivery']) {
             $_doc['Document']['doc_delivery_title'] = recursive_array_search_key_value($this->delivery(), $_doc['Document']['doc_delivery'], 'name', false, 'label');
         }
-
-        return filterArrayRecursive($_doc, null, ['specs', 'regime']);
+        $_doc = filterArrayRecursive($_doc, null, ['specs', 'regime']);
+        $_doc['Document']['payee'] = $this->payee($_doc['Document']['doc_payee']);
+        return $_doc;
     }
 
     /**

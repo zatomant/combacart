@@ -43,6 +43,33 @@ border-color: rgba(var(--bs-warning-rgb),var(--bs-border-opacity)) !important;
 		<li class="nav-item dropdown order-sm-4 shopcartplace">$outCart</li>
 	</ul>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function(event) {
+
+const pictures = document.querySelectorAll("picture");
+
+for (const picture of pictures) {
+    const image = picture.querySelector("img");
+
+    if (image && !image.classList.contains("cart-img")) {
+        image.setAttribute("loading", "eager");
+        image.classList.remove("lazy");
+        //image.removeAttribute("height");
+        break;
+    }
+}
+jQuery(document).ready(function (jQuery) {
+    jQuery.cachedScript = function( url, options ) {
+        options = $.extend( options || {}, {
+            dataType: "script",
+ 			cache: true,
+ 			url: url
+        });
+        return jQuery.ajax( options );
+    };
+})
+});
+</script>
 EOD;
 
 return $out;

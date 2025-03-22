@@ -21,9 +21,7 @@ If this snippet have "Disable" check used OnPageNotFound in plugins CombaHelper 
 */
 
 use Comba\Bundle\Modx\Orderpay\ModxOperOrderPay;
-use Comba\Core\Entity;
 use Comba\Core\Parser;
-use function Comba\Functions\safeHTML;
 
 if (!defined('MODX_BASE_PATH')) {
     die('What are you doing? Get out of here!');

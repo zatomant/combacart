@@ -13,7 +13,8 @@
 <body>
 <div class="container mw-100 px-0">
     <nav class="navbar navbar-expand sticky-top text-bg-success px-2">
-        <a class="navbar-brand p-0 mx-2 d-none d-md-inline" href="/">{{ marketplace.label }}</a>
+        <a class="navbar-brand p-0 mx-2 d-none d-md-inline" href="/">
+            <img src="https://comba.com.ua/assets/favicon/android-chrome-256x256.png" width="40"> {{ marketplace.label }}</a>
         <div style="flex-grow: 0.6;" class=" mx-auto">
             <div id="search-form" class="d-flex" xmlns="http://www.w3.org/1999/html">
                 <label for="inptSearch"></label>
@@ -123,7 +124,7 @@
         <div class="modal-content">
             <div class="modal-header py-1">
                 <h5 class="modal-title" id="printModalLabel">{{ lang.print_form }}</h5>
-                <button type="button" class="btn-close border bg-primary" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close border" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="printContent">
             </div>

@@ -2,7 +2,6 @@
 
 namespace Comba\Bundle\Modx;
 
-use Comba\Bundle\Modx\Tpl\ModxOperTpl;
 use Comba\Core\Entity;
 use Comba\Core\Oper;
 use ReflectionClass;
@@ -19,7 +18,9 @@ class ModxOper extends Oper
         $this->detectLanguage();
         $this->setParser($parser);
         $this->action = $this->setAction();
-        if (!empty($this->getParser())) $this->addPath();
+        if (!empty($this->getParser())) {
+            $this->addPath();
+        }
     }
 
     /**

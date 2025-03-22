@@ -39,10 +39,7 @@ class ModxOperCartTnx extends ModxOperCart
 
                 if (empty($doc) && !$ch->isBot()) {
                     $ch->log('Cart ID empty', LOG_ERR)->log('tpl ' . $docTpl, LOG_ERR)->log('IP ' . $ch->getIpAddr(), LOG_ERR);
-                    $browser = !empty(getenv('HTTP_USER_AGENT')) ? get_browser(null, true) : array();
-                    if (!empty($browser)) {
-                        $ch->log($browser['browser'] . " " . $browser['version'] . " " . $browser['platform'], LOG_NOTICE);
-                    }
+                    $ch->log(htmlspecialchars(filter_var($this->getAgent(), FILTER_SANITIZE_ENCODED)),LOG_NOTICE);
                 }
 
                 $goods_count = 0;

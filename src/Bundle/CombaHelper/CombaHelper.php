@@ -321,17 +321,8 @@ class CombaHelper extends ModxOptions
             return null;
         }
 
-        $browser = array();
         $userenv = $this->getIpAddr();
-        if (getenv('HTTP_USER_AGENT') !== null) {
-            $browser = get_browser(null, true);
-        }
-
-        if (!empty($browser)) {
-            $userenv .= " " . $browser['browser'];
-            $userenv .= " " . $browser['version'];
-            $userenv .= ", " . $browser['platform'];
-        }
+        $userenv .= " " . htmlspecialchars($this->getAgent());
 
         $this->log('create document', LOG_NOTICE);
         $_tmp = $this->ca->request('DocumentNew',

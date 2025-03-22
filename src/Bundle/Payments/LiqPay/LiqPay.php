@@ -1,6 +1,6 @@
 <?php
 
-namespace Comba\Bundle\Payments\Liqpay;
+namespace Comba\Bundle\Payments\LiqPay;
 
 use Comba\Bundle\Modx\ModxCart;
 use Comba\Bundle\Modx\ModxOptions;

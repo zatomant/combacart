@@ -58,7 +58,7 @@ class ModxImage
                 );
 
                 if (empty($imgs)) {
-                    // uncomment this if no multiTV
+                    // якщо немає multiTV
                      $modxobject = $this->getModx()->getDocumentObject('id', $id, 'all');
                      if (!empty($modxobject[Entity::TV_GOODS_IMAGES][1])) {
                          $imgs = $modxobject[Entity::TV_GOODS_IMAGES][1];
@@ -82,10 +82,9 @@ class ModxImage
             foreach ($_images['fieldValue'] as $item) {
 
                 if (isset($item['image'])) {
-                    //$img = $item['image'];
                     $imgratio = $item[$ratio] ?? null;
 
-                    //convert multitv image`s data for use in phpthumb class
+                    // convert multitv image`s data for use in phpthumb class
                     $imgratio = str_replace(array(':', 'x', 'y', 'width', 'height', ','), array('=', 'sx', 'sy', 'sw', 'sh', '&'), $imgratio);
 
                     $this->ratio_default[$ratio] = $imgratio;
@@ -117,7 +116,9 @@ class ModxImage
             ]
         ];
 
-        if (!empty($force)) $options .= ',force=1';
+        if (!empty($force)) {
+            $options .= ',force=1';
+        }
 
         $out = $this->renderImage(
             $src,
@@ -213,13 +214,17 @@ class ModxImage
         if (!empty($params['w']) || !empty($params['h'])) {
 
             if (!empty($params['ratio']) && !empty($params['w'])) {
-                if (is_numeric($params['ratio']) && is_numeric($params['w'])) $params['h'] = intval($params['w'] / $params['ratio']);
+                if (is_numeric($params['ratio']) && is_numeric($params['w'])) {
+                    $params['h'] = intval($params['w'] / $params['ratio']);
+                }
             }
 
             $pathopt = '/' . ($params['w'] ?? '') . 'x' . ($params['h'] ?? '');
             $pathopt .= !empty($params['ratio']) && !is_numeric($params['ratio']) ? '_' . $params['ratio'] : '';
 
-            if ($params['w'] >= 500 || $params['h'] >= 500) $options .= 'wmt';
+            if ($params['w'] >= 500 || $params['h'] >= 500) {
+                $options .= 'wmt';
+            }
         }
 
         $path .= $pathopt;
@@ -254,7 +259,9 @@ class ModxImage
 
         $outputFilename = $this->getModx()->getConfig('base_path') . $fNamePref . $fName . $fNameSuf;
         if (!empty($params['force'])) {
-            if (file_exists($outputFilename)) unlink($outputFilename);
+            if (file_exists($outputFilename)) {
+                unlink($outputFilename);
+            }
         }
 
         if (!file_exists($outputFilename)) {
@@ -275,7 +282,7 @@ class ModxImage
             if ($phpThumb->GenerateThumbnail()) {
                 $phpThumb->RenderToFile($outputFilename);
 
-                // create watermark
+                // ватермарк
                 if (!empty($text)) {
                     if (file_exists($outputFilename)) {
 
@@ -293,13 +300,21 @@ class ModxImage
                         }
                     }
                 }
-
             } else {
                 $this->getModx()->logEvent(0, 3, implode('<br/>', $phpThumb->debugmessages), 'phpthumb');
             }
-
         }
-        return $fNamePref . $fName . $fNameSuf;
 
+        // формуємо webp зображення (швидкий варіант)
+        // потрібно окремо встановлювати в систему https://developers.google.com/speed/webp
+        if (isset($webp)) {
+            if (!file_exists($outputFilename . '.webp')) {
+                $outputFilenameWebp = $outputFilename . '.webp';
+                exec('cwebp -q 80 "'.$outputFilename.'" -o "'.$outputFilenameWebp.'"');
+            }
+            $fNameSuf .= '.webp';
+        }
+
+        return $fNamePref . $fName . $fNameSuf;
     }
 }

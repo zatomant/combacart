@@ -86,7 +86,10 @@
                                             <div class="col-4">
                                                 <a href="{{ spec.docspec_product_weblink }}.html" title="{{ spec.docspec_product_name }}">
                                                     <picture>
-                                                        <img loading="lazy" data-src="/[[GetImage? &src=`{{ spec.docspec_product_photo }}` &phpthumb=`webp=1` &preset=`goods-tnx`]]"
+                                                        <source
+                                                                srcset="/[[GetImage? &src=`{{ spec.docspec_product_photo }}` &phpthumb=`webp=1` &preset=`goods-tnx`]]"
+                                                                type="image/webp">
+                                                        <img loading="lazy" data-src="/[[GetImage? &src=`{{ spec.docspec_product_photo }}` &preset=`goods-tnx`]]"
                                                              src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII="
                                                              width="55px"
                                                              height="55px"

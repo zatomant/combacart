@@ -122,7 +122,7 @@ if ($e->name == 'OnWebPageInit') {
 
         $ch = new CombaHelper($modx);
         if ($ch->isBot()) {
-            exit;
+            return;
         }
 
         $g2 = new ModxProduct();
@@ -152,8 +152,12 @@ if ($e->name == 'OnWebPageInit') {
     if ($action == 'ch_update') {
 
         $specid = isset($_POST['specid']) ? $modx->stripTags($_POST['specid']) : null;
-        if ((new CombaHelper($modx))->isBot() || empty($specid)) {
+        if (empty($specid)) {
             exit;
+        }
+
+        if ((new CombaHelper($modx))->isBot()) {
+            return;
         }
 
         $amount = isset($_POST['count']) ? $modx->stripTags($_POST['count']) : 0;
@@ -183,8 +187,11 @@ if ($e->name == 'OnWebPageInit') {
     if ($action == 'ch_delete') {
 
         $specid = isset($_POST['specid']) ? $modx->stripTags($_POST['specid']) : null;
-        if ((new CombaHelper($modx))->isBot() || empty($specid)) {
+        if (empty($specid)) {
             exit;
+        }
+        if ((new CombaHelper($modx))->isBot()) {
+            return;
         }
 
         $ret = (new ModxCart($modx))

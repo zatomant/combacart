@@ -11,12 +11,13 @@ use Comba\Bundle\Modx\ModxMarketplace;
 use Comba\Bundle\Modx\ModxSeller;
 use Comba\Core\Entity;
 
+
 //require_once MODX_BASE_PATH . 'assets/snippets/DocLister/lib/DLTemplate.class.php';
 
 class ModxOperCart extends ModxOper
 {
 
-    public function addPath():ModxOperCart
+    public function addPath(): ModxOperCart
     {
         return $this->addPathLoader(dirname(__FILE__) . '/templates');
     }
@@ -43,11 +44,8 @@ class ModxOperCart extends ModxOper
         $currency = $this->getModx()->getPlaceholder('currency');
 
         if (empty($doc) && !$ch->isBot()) {
-            $ch->log('Cart ID empty',LOG_NOTICE)->log('tpl ' . $docTpl,LOG_NOTICE)->log('IP ' . $ch->getIpAddr(),LOG_NOTICE);
-            $browser = !empty(getenv('HTTP_USER_AGENT')) ? get_browser(null, true) : array();
-            if (!empty($browser)){
-                $ch->log($browser['browser'] . " " . $browser['version'] . " " . $browser['platform'],LOG_NOTICE);
-            }
+            $ch->log('Cart ID empty', LOG_NOTICE)->log('tpl ' . $docTpl, LOG_NOTICE)->log('IP ' . $ch->getIpAddr(), LOG_NOTICE);
+            $ch->log(htmlspecialchars(filter_var($this->getAgent(), FILTER_SANITIZE_ENCODED)), LOG_NOTICE);
         }
 
         $goods_count = 0;
@@ -148,7 +146,7 @@ class ModxOperCart extends ModxOper
                 ->request('DeliveryList', ['Seller' => $marketplace['uid']]),
             true);
 
-        $_recaptcha = Entity::get3thAuth('reCaptcha','marketplace');
+        $_recaptcha = Entity::get3thAuth('reCaptcha', 'marketplace');
 
         return $this->getModx()
             ->tpl

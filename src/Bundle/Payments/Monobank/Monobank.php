@@ -136,7 +136,7 @@ class Monobank extends ModxOptions
             $monoWebhook = new Webhook($monoClient, $publicKey, $_SERVER['HTTP_X_SIGN']);
 
             if (!$monoWebhook->verify(json_encode($paymentstatus))) {
-                // видяляємо публічний ключ тому що не пройшла валідація. можливо ключ протух.
+                // Видаляємо публічний ключ тому що не пройшла валідація. можливо ключ протух.
                 (new Cache($info['provider'] . $this->token))->setLifetime(0)->set('0');
                 exit;
             }

@@ -122,7 +122,7 @@ class ModxProduct extends ModxOptions
             "goods_seller":"' . (!empty($modxobject[Entity::TV_GOODS_SELLER][1]) ? $modxobject[Entity::TV_GOODS_SELLER][1] : "") . '",
             "goods_inbalances":"' . (!empty($modxobject[Entity::TV_GOODS_INBALANCES][1]) ? $modxobject[Entity::TV_GOODS_INBALANCES][1] : "0") . '",
             "contentid":"' . $modxobject['id'] . '",
-            "goods_md5":"' . md5($modxobject[Entity::TV_GOODS_CODE][1]) . '"';
+            "goods_md5":"' . md5(!empty($modxobject[Entity::TV_GOODS_CODE][1]) ? $modxobject[Entity::TV_GOODS_CODE][1] : 0) . '"';
 
             if ($includeImageSPreset) {
                 $ret .= ',

@@ -6,9 +6,13 @@
         <div class="col-4 px-1">
             <a href="{{ spec.docspec_product_weblink }}.html" title="{{ spec.docspec_product_name }}">
                 <picture>
+                    <source
+                            srcset="[(site_url)][[GetImage? &src=`{{ spec.docspec_product_photo }}` &phpthumb=`webp=1` &preset=`cart-goods` &oper=`lazy`]]"
+                            type="image/webp">
                     <img loading="lazy"
                          data-src="[(site_url)][[GetImage? &src=`{{ spec.docspec_product_photo }}` &preset=`cart-goods` &oper=`lazy`]]"
-                         alt="{{ spec.docspec_product_name }}" class="img-fluid pe-1 rounded-lg lazy">
+                         alt="{{ spec.docspec_product_name }}"
+                         class="img-fluid pe-1 rounded-lg lazy cart-img">
                 </picture>
             </a>
         </div>

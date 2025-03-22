@@ -36,7 +36,7 @@
             <div class="card border-0 bgg">
                 <div class="card-body text-center">
                     <h5>
-                        Відскануйте цей код додатком в телефоні або тапніть на його що б спробувати заповнити реквізити автоматично.
+                        Відскануйте цей код додатком в телефоні або торкніться його, що б спробувати автоматично заповнити реквізити.
                     </h5>
                     {% set qrurl = ['BCD','002','1','UCT','',pt.label,pt.account,'UAH' ~ doc.doc_paysum|number_format(2, ".", ""),pt.okpo,'','',lang.payment_bank_note_inline ~' '~ doc.doc_number,'']|join('\n') %}
                     <a href="https://bank.gov.ua/qr/{{ qrurl|base64url_encode | raw }}">{{ formatBarcode({'s':'https://bank.gov.ua/qr/'~ qrurl|base64url_encode,'c':'blue','bg':'yellow'}) | raw }}</a>
