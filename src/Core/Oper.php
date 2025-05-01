@@ -36,14 +36,16 @@ class Oper extends Options
     {
         $this->setParser($parser);
         $this->action = $this->setAction();
-        if (!empty($this->getParser())) $this->addPath();
+        if (!empty($this->getParser())) {
+            $this->addPath();
+        }
     }
 
     /**
      * Return parser class
      *
      */
-    function getParser()
+    public function getParser()
     {
         return $this->_parser;
     }
@@ -55,7 +57,7 @@ class Oper extends Options
      *
      * @return void
      */
-    function setParser($parser)
+    public function setParser($parser)
     {
         if (!empty($parser)) {
             $this->_parser = $parser;
@@ -67,7 +69,7 @@ class Oper extends Options
      *
      * @return Oper
      */
-    function addPath(): Oper
+    public function addPath(): Oper
     {
         $helloReflection = new ReflectionClass($this);
         $path = dirname($helloReflection->getFilename()) . '/templates';
@@ -87,7 +89,7 @@ class Oper extends Options
      *
      * @return Oper
      */
-    function addPathLoader(string $path): Oper
+    public function addPathLoader(string $path): Oper
     {
         $this->getParser()->GetLoader()->addPath($path);
         return $this;
@@ -101,7 +103,7 @@ class Oper extends Options
      *
      * @return Oper
      */
-    function addGlobal($k, $v): Oper
+    public function addGlobal($k, $v): Oper
     {
         $this->getParser()->addGlobal($k, $v);
         return $this;
@@ -112,9 +114,9 @@ class Oper extends Options
      *
      * @return array
      */
-    function getAction(): array
+    public function getAction(): array
     {
-        $act = array();
+        $act = [];
         if (is_array($this->action)) {
             foreach ($this->action as $action) {
                 $act = array_merge(array($action => get_class($this)), $act);
@@ -133,7 +135,7 @@ class Oper extends Options
      *
      * @return string|null
      */
-    function setAction(): ?string
+    public function setAction(): ?string
     {
         return null;
     }
@@ -145,9 +147,9 @@ class Oper extends Options
      *
      * @return array
      */
-    function getActionList(string $path): array
+    public function getActionList(string $path): array
     {
-        $files = array();
+        $files = [];
         $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
         foreach ($rii as $file) {
             if ($file->isDir()) {
@@ -163,11 +165,11 @@ class Oper extends Options
     }
 
     /**
-     * Prepare for Render basic method
+     * Prepare for render basic method
      *
      * @return string|void
      */
-    function render()
+    public function render()
     {
         if (!empty($this->getParser())) {
             $this->addPath();
@@ -181,7 +183,7 @@ class Oper extends Options
      *
      * @return string
      */
-    function renderParser(array $context = []): string
+    public function renderParser(array $context = []): string
     {
         return $this->setTemplates()
             ->parser()->render($this->getParser()->FilenamePath(), $context);
@@ -191,7 +193,7 @@ class Oper extends Options
      * Return parser engine
      *
      */
-    function parser()
+    public function parser()
     {
         return $this->getParser()->getEngine();
     }
@@ -201,7 +203,7 @@ class Oper extends Options
      *
      * @return Oper
      */
-    function setTemplates(): Oper
+    public function setTemplates(): Oper
     {
         return $this;
     }
@@ -209,13 +211,13 @@ class Oper extends Options
     /**
      * Get data from GET
      *
-     * @param string $name key
-     *
+     * @param string $key
      * @return string
      */
-    function getData(string $name)
+    public function getData(string $key)
     {
-        return $_GET[$name] ?? $this->getFormData($name);
+        $value = filter_input(INPUT_GET, $key, FILTER_SANITIZE_SPECIAL_CHARS);
+        return $value !== null ? $value : $this->getFormData($key);
     }
 
     /**
@@ -225,7 +227,7 @@ class Oper extends Options
      *
      * @return mixed
      */
-    function getFormData($options = false)
+    public function getFormData($options = false)
     {
         return $options ? ($this->data[$options] ?? null) : $this->data;
     }
@@ -237,7 +239,7 @@ class Oper extends Options
      *
      * @return void
      */
-    function setFormDataRaw(string $data)
+    public function setFormDataRaw(string $data)
     {
         $data = base64_decode($data);
         $data = rawurldecode($data);
@@ -252,7 +254,7 @@ class Oper extends Options
      *
      * @return Oper
      */
-    function setFormData($data): Oper
+    public function setFormData($data): Oper
     {
         $this->data = $data;
         return $this;
@@ -263,7 +265,7 @@ class Oper extends Options
      *
      * @return string
      */
-    function getTemplateDirname()
+    public function getTemplateDirname()
     {
         return $this->parser()->GetTemplateDirname();
     }
@@ -275,7 +277,7 @@ class Oper extends Options
      *
      * @return void
      */
-    function setTemplateDirname(string $path)
+    public function setTemplateDirname(string $path)
     {
         $this->getParser()->setTemplateDirname($path);
     }
@@ -285,7 +287,7 @@ class Oper extends Options
      *
      * @return string
      */
-    function getTemplatesType()
+    public function getTemplatesType()
     {
         return $this->getOptions('templatesType');
     }
@@ -297,7 +299,7 @@ class Oper extends Options
      *
      * @return Oper
      */
-    function setTemplatesType(string $type): Oper
+    public function setTemplatesType(string $type): Oper
     {
         return $this->setOptions('templatesType', $type);
     }
@@ -307,7 +309,7 @@ class Oper extends Options
      *
      * @return string
      */
-    function getTemplateFilename(): string
+    public function getTemplateFilename(): string
     {
         return $this->getParser()->getTemplateFilename();
     }
@@ -319,7 +321,7 @@ class Oper extends Options
      *
      * @return void
      */
-    function setTemplateFilename(string $name)
+    public function setTemplateFilename(string $name)
     {
         $this->getParser()->setTemplateFilename($name);
     }
@@ -331,7 +333,7 @@ class Oper extends Options
      *
      * @return string|null
      */
-    function response($data = null): ?string
+    public function response($data = null): ?string
     {
         return isset($data) ? $this->isEmptyResponse($data) : $this->isEmptyResponse($this->out);
     }
@@ -343,7 +345,7 @@ class Oper extends Options
      *
      * @return string
      */
-    function isEmptyResponse($out): ?string
+    public function isEmptyResponse($out): ?string
     {
         if ($this->getOptions('allowemptydata') == 'true') {
             return $out;

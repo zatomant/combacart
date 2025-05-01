@@ -1,0 +1,22 @@
+<div class="modal fade" id="newVersionAvailable" data-bs-backdrop="s1tatic" data-bs-keyboard="false" tabindex="-1" aria-labelledby="newVersionAvailableLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">{{ lang.app_update_available }} {{ App.name }} !</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    {{ lang.app_version_current|replace({'%s': App.version})|raw }}
+                    <br>{{ lang.app_version_available|replace({'%s': '<strong>'~App.newVersionAvailable~'</strong>'})|raw }}
+                </p>
+                <p>
+                    {{ lang.app_update_tips }}
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ lang.button_ok }}</button>
+            </div>
+        </div>
+    </div>
+</div>

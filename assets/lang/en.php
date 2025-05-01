@@ -94,6 +94,7 @@ return [
     'payment_bank_note' => 'Note',
     'payment_bank_note_inline' => 'Payment by order #',
     'payment_bank_excl' => 'Important: Be sure to indicate the order number in the note payment!',
+    'payment_qr_tips' => 'Scan this QR code with your mobile app or tap it to autofill the payment details.',
     'status_accepted' => 'Accepted by seller',
     'status_directly' => 'Order delivered to the seller',
     'status_1' => 'New',
@@ -177,5 +178,14 @@ return [
     'email_tracking_tips2' => 'or on the page',
     'error_deny_seller' => 'No access to the seller\'s documents',
     'error_deny' => 'Access denied',
-    'error_action_canceled' => 'Action was canceled'
+    'error_action_canceled' => 'Action was canceled',
+    'document_none' => 'Document not found',
+    'document_uid_wrong' => 'Invalid document ID or data retrieval error (details in log file)',
+    'app_version_current' => 'Current version %s',
+    'app_version_available' => 'New version %s',
+    'app_update_available' => 'Update available',
+    'app_update_tips' => 'Please contact the administrator to perform the update.',
+    'app_mode_compatible_tips' => 'running in compatibility mode',
+    'app_mode_cloud_tips' => 'Cloud mode is enabled in the settings. To manage Orders, go to the Comba cloud panel',
+
 ];

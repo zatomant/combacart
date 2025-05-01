@@ -9,9 +9,8 @@ class Entity
 
     // Основні параметри
     public const NAME = 'CombaCart';
-    public const TDS = 'FS';
-    public const FILE_VER = '32';
-    public const VERSION = '2.6.' . self::FILE_VER . ' ' . self::TDS;
+    public const FILE_VER = '34';
+    public const VERSION = '2.6.' . self::FILE_VER;
 
     // Термін актуальності кешованих даних клієнта за замовчуванням (30 днів у секундах)
     public const CACHE_LIFETIME = 2592000; // 60*60*24*30
@@ -68,12 +67,12 @@ class Entity
     // Хост та доменне ім'я сайту
     public static function getServerHost(): string
     {
-        return 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+        return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost');
     }
 
     public static function getServerName(): string
     {
-        return $_SERVER['SERVER_NAME'] ?? 'localhost';
+        return $_SERVER['SERVER_NAME'] ?? getenv('SERVER_NAME') ?? 'localhost';
     }
 
     /**
@@ -106,7 +105,7 @@ class Entity
             return [];
         }
 
-        // Повертаємо дані за замовчуванням для маркетплейсу
+        // Повертаємо дані маркетплейсу за замовчуванням.
         return self::getData($provider, 'marketplace');
     }
 
@@ -114,7 +113,7 @@ class Entity
     {
         $default = [];
         if (file_exists(self::PATH_ROOT . self::PATH_SRC . '/Config/marketplace.php')) {
-            // налаштування Маркетплейсу "за замовчуванням"
+            // налаштування маркетплейсу "за замовчуванням"
             $default = include self::PATH_ROOT . self::PATH_SRC . '/Config/marketplace.php';
         }
 

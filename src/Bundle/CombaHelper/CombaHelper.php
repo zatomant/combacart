@@ -369,12 +369,12 @@ class CombaHelper extends ModxOptions
 
             $_tpl_file = MODX_BASE_PATH . substr($tpl, 6);
 
-            $path_parts = pathinfo($tpl);
-            $dir = realpath($path_parts['dirname']);
-            if ($dir === false){
-                // fix for symlink path
-                $_tpl_file =  substr($tpl, 6);
-            }
+//            $path_parts = pathinfo($tpl);
+//            $dir = realpath($path_parts['dirname']);
+//            if ($dir === false){
+//                // fix for symlink path
+//                $_tpl_file =  substr($tpl, 6);
+//            }
 
             if (file_exists($_tpl_file)) {
                 $template = file_get_contents($_tpl_file);

@@ -44,9 +44,9 @@ if ($action == 'cabinet') {
         $modx->sendRedirect('/' . Entity::PAGE_LOGIN);
         return;
     }
-    $details = array();
+    $details = [];
     $_ui = $modx->getWebUserInfo($user['id']);
-    if (!empty($_ui)) {
+    if (!empty($_ui) && is_array($_ui)) {
         $details = [
             'email' => array_search_by_key($_ui, 'email'),
             'user' => array_search_by_key($_ui, 'internalKey'),

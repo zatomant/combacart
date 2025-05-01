@@ -106,14 +106,12 @@ class Options
             if (is_array($value)) {
                 $this->_options[$param] = $value;
                 if ($this->_debug) {
-                    $lg = new Logs();
-                    $lg->save('set ' . $param . '->' . implode(';', $value));
+                    (new Logs())->save('set ' . $param . '->' . implode(';', $value));
                 }
             } else {
                 if (isset($value)) {
                     if ($this->_debug) {
-                        $lg = new Logs();
-                        $lg->save('set ' . $param . '->' . $value);
+                        (new Logs())->save('set ' . $param . '->' . $value);
                     }
                     $this->_options[$param] = $value;
                 }

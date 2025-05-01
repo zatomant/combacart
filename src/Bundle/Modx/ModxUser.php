@@ -38,6 +38,7 @@ class ModxUser extends ModxOptions
                     $userid = $_SESSION['mgrInternalKey'];
                     if (!empty($userid)) {
                         $user = $this->getModx()->getUserInfo($userid);
+                        $user['fullname'] = !empty($user['fullname']) ? $user['fullname'] : $user['username'];
                     }
                 }
             }

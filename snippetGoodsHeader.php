@@ -14,7 +14,7 @@
  * @lastupdate  22-02-2022
  */
 
-$out 		= '<script src="/assets/js/jquery/jquery.min.js"></script>';
+$out 		= '<script src="/assets/plugins/combacart/assets/js/jQuery/jquery.min.js"></script>';
 $outCart 	= '';
 
 if (strpos($hide, 'cart') === false) {

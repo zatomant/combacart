@@ -13,6 +13,9 @@ use Comba\Bundle\Modx\ModxProduct;
 use Comba\Core\Entity;
 use Comba\Core\Logs;
 
+ini_set('display_errors', 0); // Заборонити вивід помилок на екран
+error_reporting(E_ALL);
+
 require_once '../vendor/autoload.php';
 
 $isAuth = false;

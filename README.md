@@ -41,18 +41,24 @@ EVO CMS 1.4+ або Evolution CMS 3.+ [github.com](https://github.com/evolution-
 
 ## Оновлення CombaCart ##  
 
-через composer:  
+Через браузер:  
+відкрийте в браузері сторінку  
+```
+ваш_сайт/assets/plugins/combacart/update/
+```
+
+Через консоль веб сервера:  
 виконайте в консолі  
 ```
-cd _коренева_тека_вашого_сайту_/assets/plugins/combacart
+cd _коренева_тека_вашого_сайту_/assets/plugins/combacart/update/
 
-composer update
+php process.php
 ```  
 
-ручне оновлення файлів:  
-- завантажте крайній реліз CombaCart [github.com](https://github.com/zatomant/combacart) та перезапишіть файли в /assets/plugins/combacart .
+Ручне оновлення файлів:  
+- завантажте крайній реліз CombaCart [github.com](https://github.com/zatomant/combacart) та перезапишіть файли в /assets/plugins/combacart
 
-
+  
 Файл composer.json містить перелік компонентів що використовується в CombaCart.
 ви можете прибрати зайві на ваш розсуд, залежності та модифікувати шаблони за потреби.
 
@@ -96,7 +102,11 @@ composer update
 
 ## Перші кроки після закінчення інсталяції та налаштувань ##
 
-1. При інсталяції через Extras [github.com](https://github.com/zatomant/combacart-extras) будуть автоматично створені необхідні елементи (інакше доведеться створити це вручну), а саме :
+1. Необов'язковий пункт, але з ним легше.  
+   На сторінці адміністрування CMS Evolution відкрийти Конфігурація -> Дружні URL та відключить "Використовувати вкладені URL"  
+   Використовувати вкладені URL: Ні  
+
+2. При інсталяції через Extras [github.com](https://github.com/zatomant/combacart-extras) будуть автоматично створені необхідні елементи (інакше доведеться створити це вручну), а саме :
 
    * шаблон для сторінки товару goods_tmplt
    * шаблон для сторінки оформлення замовлення checkout_tmplt
@@ -122,19 +132,19 @@ composer update
       - snippetOrderPay для показу сторінки з варіантами оплат
       - snippetOrderTracking для показу статусу обробки замовлення
 
-2. До шаблона goods_tmplt мають бути прив'язані TV goods_avail, goods_code, goods_price, goods_price_old, goods_weight, goods_isnewproduct, goods_isondemand, goods_seller
+3. До шаблона goods_tmplt мають бути прив'язані TV goods_avail, goods_code, goods_price, goods_price_old, goods_weight, goods_isnewproduct, goods_isondemand, goods_seller
 
-3. Створіть нову сторінку (документ), задайте їй шаблон goods_tmplt. Це буде ваш перший товар.
+4. Створіть нову сторінку (документ), задайте їй шаблон goods_tmplt. Це буде ваш перший товар.
    Код товару (артикул) має бути унікальним в контексті сторінки (документа).
 
-4. Створіть сторінку з псевдонімом (alias) checkout та задайте їй шаблон checkout_tmplt . Це буде сторінка оформлення замовлення.
+5. Створіть сторінку з псевдонімом (alias) checkout та задайте їй шаблон checkout_tmplt . Це буде сторінка оформлення замовлення.
    якщо використовуєте інший псевдонім то внесіть його в константу COMBAMODX_PAGE_CHECKOUT в файлі /src/Config/config.php
 
-5. Створіть сторінку з псевдонімом (alias) tnx на яку буде перенаправлено користувача після створення замовлення.
+6. Створіть сторінку з псевдонімом (alias) tnx на яку буде перенаправлено користувача після створення замовлення.
    якщо використовуєте інший псевдонім внесіть його в константу COMBAMODX_PAGE_TNX в файлі /src/Config/config.php
    у разі відсутності такої сторінки буде перехвачено OnPageNotFound та відображенно текст з /src/Bundle/Modx/Cart/templates/chunk-CheckoutTnx
 
-6. Створіть сторінку з псевдонімом (alias) cabinet та задайте їй вміст ресурсу ```[[CombaHelper? &action=`cabinet`]]```.  
+7. Створіть сторінку з псевдонімом (alias) cabinet та задайте їй вміст ресурсу ```[[CombaHelper? &action=`cabinet`]]```.  
 Ця сторінка відображує історію замовлень покупця.
 
 

@@ -26,6 +26,11 @@
                 <button class="btn {{ btnsize }} btn-primary" id="btnSearch"><i class="bi bi-arrow-clockwise"></i></button>
             </div>
         </div>
+        {% if App.newVersionAvailable %}
+            <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#newVersionAvailable">
+                <i class="bi bi-info-lg"></i>
+            </button>
+        {% endif %}
         <button class="btn {{ btnsize }} btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight"
                 aria-controls="offcanvasRight">
             <i class="bi bi-person iconuser" id="UserIcon"></i>
@@ -38,6 +43,10 @@
 </div>
 
 {% include 'top-navbar-user.html.twig' %}
+
+{% if App.newVersionAvailable %}
+    {% include 'newVersionAvailable.html.twig' %}
+{% endif %}
 
 <div class="modal mymodal overflow-auto" tabindex="-1" role="dialog" id="modaldialog" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-fullscreen-lg-down modal-lg modal-dialog-scrollable ms-auto" role="document">

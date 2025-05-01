@@ -76,8 +76,7 @@ class Server extends ModxOptions
      */
     public function documentread(string $uid, string $type = ''): array
     {
-        $_d = $this->doCache('Document' . $type . '_' . $uid)
-            ->get();
+        $_d = $this->doCache('Document' . $type . '_' . $uid)->get();
         return !empty($_d) ? json_decode($_d, true) : [];
     }
 
@@ -170,7 +169,7 @@ class Server extends ModxOptions
     }
 
     /**
-     * Додае нову позицію в специфікацію Кошика, або збільшує кількість наявної якщо вже присутня
+     * Додає нову позицію в специфікацію Кошика, або збільшує кількість наявної якщо вже присутня
      * @param array $data
      * @return string|null
      */
@@ -487,16 +486,18 @@ class Server extends ModxOptions
 
     public function documentList(array $params = null): array
     {
-        $docs = array();
+        $docs = [];
         $page = isset($params['page']) ? (int)$params['page'] : 1;
         $paging = ['total' => 0, 'from' => 0, 'to' => 0, 'length' => $this->_paging_length];
 
-        $files = $this->serverCache->items('Document_*', true);
-        if (!$files) return $docs;
+        $items = $this->serverCache->items('Document_*', true);
+        if (!$items) {
+            return $docs;
+        }
 
         $n = 0;
-        foreach ($files as $file) {
-            $name = basename($file, $this->serverCache->getSuffix());
+        foreach ($items as $item) {
+            $name = basename($item, $this->serverCache->getSuffix());
 
             $pattern = '/^([A-Za-z0-9_-]+)_/';
             if (preg_match($pattern, $name, $matches)) {
@@ -513,7 +514,7 @@ class Server extends ModxOptions
                 continue;
             }
 
-            $bAddThisFile = true;
+            $bAddThisItem = true;
             if (isset($params['search']) && strlen($params['search']) > 3) {
                 if (
                     stripos($_doc['Document']['doc_uid'], $params["search"]) !== false ||
@@ -524,13 +525,13 @@ class Server extends ModxOptions
                 ) {
                     $paging['total'] = $paging['total'] + 1;
                 } else {
-                    $bAddThisFile = false;
+                    $bAddThisItem = false;
                 }
             } else {
                 $paging['total'] = $paging['total'] + 1;
             }
 
-            if ($bAddThisFile) {
+            if ($bAddThisItem) {
                 $_doc['Document']['doc_delivery_title'] = recursive_array_search_key_value($this->delivery(), $_doc['Document']['doc_delivery'], 'name', false, 'label');
 
                 $_doc['Document']['doc_payee_title'] = $this->payee($_doc['Document']['doc_payee'])['label'];

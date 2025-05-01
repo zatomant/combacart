@@ -9,6 +9,7 @@ use Comba\Bundle\Modx\ModxUser;
 use Comba\Bundle\Modx\Tpl\ModxOperTpl;
 use Comba\Bundle\Modx\Tracking\ModxOperTrackingExt;
 use Comba\Core\Entity;
+use Comba\Core\GithubChecker;
 use Comba\Core\Parser;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\Mailer;
@@ -343,13 +344,17 @@ class Manager extends ModxOptions
         $tpl->setOptions('tpl', 'documentlist');
 
         if (empty($params) || empty($params[0])) {
-            $tpl->addGlobal('App',
-                [
-                    'name' => Entity::NAME,
-                    'version' => Entity::VERSION,
-                    'fver' => Entity::FILE_VER
-                ]
-            );
+            $app = [
+                'name' => Entity::NAME,
+                'version' => Entity::VERSION,
+                'fver' => Entity::FILE_VER,
+            ];
+
+            if ($versionNew = (new GithubChecker())->checkLatestGithubVersion(Entity::NAME, 'zatomant/combacart', Entity::VERSION)) {
+                $app['newVersionAvailable'] = $versionNew;
+            }
+
+            $tpl->addGlobal('App', $app);
             $tpl->addGlobal('EVO', $this->getModx()->getVersionData());
 
             $user = new ModxUser($this->getModx());
