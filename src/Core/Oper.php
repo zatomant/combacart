@@ -5,6 +5,7 @@ namespace Comba\Core;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
+use Twig\Environment;
 
 /**
  * Oper basic class
@@ -15,75 +16,77 @@ use ReflectionClass;
 class Oper extends Options
 {
 
-    public
-        $out;
+    public ?string $out = null;
 
-    protected
-        $action,
-        $data;
+    protected $action;
+    protected $data;
 
-    private
-        $_parser;
+    private ?Parser $_parser = null;
 
     /**
      * __construct
      *
-     * @param object|null $parser class
+     * @param Parser|null $parser class
      *
-     * @return void
      */
-    function __construct($parser = null)
+    public function __construct(?object $parent = null, ?Parser $parser = null)
     {
+        parent::__construct($parent);
+
+        $parser = $parser ?? new Parser();
+
         $this->setParser($parser);
         $this->action = $this->setAction();
-        if (!empty($this->getParser())) {
+
+        if ($this->getParser()) {
+            // додавання шляхів до шаблонів
             $this->addPath();
         }
     }
 
     /**
-     * Return parser class
+     * Return Parser class
      *
      */
-    public function getParser()
+    public function getParser(): ?Parser
     {
         return $this->_parser;
     }
 
     /**
-     * Set parser class
+     * Set Parser class
      *
-     * @param object $parser classname
-     *
-     * @return void
+     * @param Parser|null $parser
+     * @return Oper
      */
-    public function setParser($parser)
+    public function setParser(?Parser $parser): Oper
     {
         if (!empty($parser)) {
             $this->_parser = $parser;
         }
+
+        return $this;
     }
 
     /**
-     * Add path basic method
+     * Встановлює шлях до шаблонів класу та встановлює шаблон за замовчуванням
      *
      * @return Oper
      */
     public function addPath(): Oper
     {
         $helloReflection = new ReflectionClass($this);
-        $path = dirname($helloReflection->getFilename()) . '/templates';
-        if (file_exists($path)) {
+        if (file_exists($path = dirname($helloReflection->getFilename()) . '/templates')) {
             $this->addPathLoader($path);
         }
 
         $class = get_class($this);
-        $this->getParser()->setTemplateFilename(strtolower(str_replace('Oper', '', $class)) . '.html');
+        $this->getParser()->setTemplateFilename(strtolower(str_replace('Oper', '', $class)));
         return $this;
     }
 
     /**
-     * Add path to loader for parser
+     * Додає шлях до шаблонів
      *
      * @param string $path just path
      *
@@ -91,12 +94,12 @@ class Oper extends Options
      */
     public function addPathLoader(string $path): Oper
     {
-        $this->getParser()->GetLoader()->addPath($path);
+        $this->getParser()->getLoader()->addPath($path);
         return $this;
     }
 
     /**
-     * Set global var in parser
+     * Set global var to Parser
      *
      * @param string $k key
      * @param mixed $v arguments
@@ -131,7 +134,7 @@ class Oper extends Options
     }
 
     /**
-     * Bind action list
+     * Закріплює визначені action за класом
      *
      * @return string|null
      */
@@ -141,7 +144,7 @@ class Oper extends Options
     }
 
     /**
-     * Get action list from each class file
+     * Формує перелік action зі знайдених класів
      *
      * @param string $path path to files
      *
@@ -165,7 +168,7 @@ class Oper extends Options
     }
 
     /**
-     * Prepare for render basic method
+     * Prepare for Render basic method
      *
      * @return string|void
      */
@@ -177,7 +180,7 @@ class Oper extends Options
     }
 
     /**
-     * Call render parser
+     * Call render() twig
      *
      * @param array $context parsers arguments
      *
@@ -185,15 +188,17 @@ class Oper extends Options
      */
     public function renderParser(array $context = []): string
     {
-        return $this->setTemplates()
-            ->parser()->render($this->getParser()->FilenamePath(), $context);
+        return
+            $this->setTemplates()
+                ->parser()
+                ->render($this->getParser()->FilenamePath(), $context);
     }
 
     /**
      * Return parser engine
      *
      */
-    public function parser()
+    public function parser(): Environment
     {
         return $this->getParser()->getEngine();
     }
@@ -212,7 +217,7 @@ class Oper extends Options
      * Get data from GET
      *
      * @param string $key
-     * @return string
+     * @return mixed
      */
     public function getData(string $key)
     {
@@ -233,7 +238,7 @@ class Oper extends Options
     }
 
     /**
-     * Set data from post raw
+     * Set data from POST raw
      *
      * @param string $data raw data
      *
@@ -254,16 +259,14 @@ class Oper extends Options
      *
      * @return Oper
      */
-    public function setFormData($data): Oper
+    public function setFormData(array $data): Oper
     {
         $this->data = $data;
         return $this;
     }
 
     /**
-     * Get templates path from parser
-     *
-     * @return string
+     * @deprecated This method is obsolete.
      */
     public function getTemplateDirname()
     {
@@ -271,11 +274,7 @@ class Oper extends Options
     }
 
     /**
-     * Set templates path to parser
-     *
-     * @param string $path path
-     *
-     * @return void
+     * @deprecated This method is obsolete.
      */
     public function setTemplateDirname(string $path)
     {
@@ -285,7 +284,7 @@ class Oper extends Options
     /**
      * Return current templates type by action
      *
-     * @return string
+     * @return mixed
      */
     public function getTemplatesType()
     {
@@ -321,9 +320,10 @@ class Oper extends Options
      *
      * @return void
      */
-    public function setTemplateFilename(string $name)
+    public function setTemplateFilename(string $name): Oper
     {
         $this->getParser()->setTemplateFilename($name);
+        return $this;
     }
 
     /**
@@ -355,8 +355,9 @@ class Oper extends Options
             $helloReflection = new ReflectionClass($this);
             $out = $helloReflection->getName();
             $out .= ' -> empty in final parse';
-            (new Logs('error'))->save($out);
+            (new Logs('error'))->log('ERROR', $out);
         }
         return $out;
     }
+
 }

@@ -69,7 +69,7 @@ class CC_FunctionTwig extends AbstractExtension
         );
         //
         list($rub, $kop) = explode('.', sprintf("%015.2f", floatval($num)));
-        $out = array();
+        $out = [];
         if (intval($rub) > 0) {
             foreach (str_split($rub, 3) as $uk => $v) { // by 3 symbols
                 if (!intval($v)) continue;

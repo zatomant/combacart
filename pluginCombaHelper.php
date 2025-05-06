@@ -18,7 +18,8 @@ use Comba\Bundle\Modx\ModxCart;
 use Comba\Bundle\Modx\ModxMarketplace;
 use Comba\Bundle\Modx\ModxProduct;
 use Comba\Bundle\Modx\ModxUser;
-use Comba\Bundle\BuildInServer\Manager;
+use Comba\Bundle\Modx\Payment\PaymentCallback;
+use Comba\Bundle\Standalone\Manager;
 use Comba\Core\Entity;
 use Comba\Core\Answer;
 use Comba\Core\Options;
@@ -36,8 +37,7 @@ if (!defined('MODX_BASE_PATH')) {
     die('What are you doing? Get out of here!');
 }
 
-include_once(dirname(__FILE__) . '/autoload.php');
-include_once MODX_BASE_PATH . 'assets/lib/MODxAPI/modResource.php';
+require_once __DIR__ . '/autoload.php';
 
 $tplExt = '';
 $tplPath = '';
@@ -45,60 +45,57 @@ $tplPath = '';
 global $modx;
 $e = $modx->event;
 
+$_log_level = Entity::get('LOG_LEVEL');
+
 $modx->setPlaceholder('currency_name', 'UAH');
 $modx->setPlaceholder('currency', 'грн');
 
 if ($e->name == 'OnPageNotFound') {
 
-    if (strpos($_SERVER['REQUEST_URI'], Entity::PAGE_COMBA) !== false) {
-        echo (new Manager($modx))->render();
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+    if (strpos($requestUri, Entity::get('PAGE_COMBA')) !== false) {
+        echo (new Manager(null, $modx))->render();
         exit;
     }
-    if (strpos($_SERVER['REQUEST_URI'], 'trk?') !== false || strpos($_SERVER['REQUEST_URI'], Entity::PAGE_TRACKING . '?') !== false) {
-        $_v = !empty($_GET['trk']) ? 'trk' : Entity::PAGE_TRACKING;
-        $trk = !empty($_GET[$_v]) ? safeHTML($_GET[$_v]) : parse_url(safeHTML($_SERVER['REQUEST_URI']), PHP_URL_QUERY);
-        if (!empty($trk)) {
-            echo require_once(dirname(__FILE__) . '/snippetOrderTracking.php');
-            exit;
-        }
-    }
-    if (strpos($_SERVER['REQUEST_URI'], 'pay?') !== false
-        || strpos($_SERVER['REQUEST_URI'], Entity::PAGE_PAYMENT . '?') !== false
-        || strpos($_SERVER['REQUEST_URI'], Entity::PAGE_PAYMENT . '/?') !== false) {
-        $_v = !empty($_GET['pay']) ? 'pay' : Entity::PAGE_PAYMENT;
-        $pay = !empty($_GET[$_v]) ? safeHTML($_GET[$_v]) : parse_url(safeHTML($_SERVER['REQUEST_URI']), PHP_URL_QUERY);
-        if (!empty($pay)) {
-            echo require_once(dirname(__FILE__) . '/snippetOrderPay.php');
-            exit;
-        }
-    }
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($_SERVER['REQUEST_URI'], Entity::PAGE_PAYMENT_CALLBACK . '?') !== false) {
-        $requestUri = $_SERVER['REQUEST_URI'];
-        $paymentstatus = $_POST;
-        require_once(dirname(__FILE__) . '/snippetOrderPaymentCallback.php');
-    }
-    if (strpos($_SERVER['REQUEST_URI'], Entity::PAGE_TNX) !== false) {
-        $params = [
-            'action' => 'readrequest',
-            'docTpl' => '@FILE:' . $tplPath . '/pagefull-CheckoutTnx' . $tplExt,
-            'docEmptyTpl' => '@FILE:' . $tplPath . '/pagefull-CheckoutTnxEmpty' . $tplExt,
-        ];
-        echo $modx->runSnippet('CombaHelper', $params);
 
-        $ch = new CombaHelper($modx);
-        if ($ch->getCheckoutTnx()) {
-            // видаляємо з кешу документів старий uid
-            $ch->invalidateCache((new ModxUser($modx))->getSession());
+    $pageTracking = Entity::get('PAGE_TRACKING');
+    if (strpos($requestUri, $pageTracking . '?') !== false) {
+        $uid = !empty($_GET[$pageTracking]) ? safeHTML($_GET[$pageTracking]) : parse_url(safeHTML($requestUri), PHP_URL_QUERY);
+        if (!empty($uid)) {
+            echo $modx->runSnippet('CombaFunctions', ['fnct' => 'OrderTracking', 'uid' => $uid, 'pagefull' => 1]);
+            exit;
         }
+    }
+
+    $pagePayment = Entity::get('PAGE_PAYMENT');
+    if (strpos($requestUri, $pagePayment . '?') !== false) {
+        $uid = !empty($_GET[$pagePayment]) ? safeHTML($_GET[$pagePayment]) : parse_url(safeHTML($requestUri), PHP_URL_QUERY);
+        if (!empty($uid)) {
+            echo $modx->runSnippet('CombaFunctions', ['fnct' => 'OrderPay', 'uid' => $uid, 'pagefull' => 1]);
+            exit;
+        }
+    }
+
+    $pageCallbackPayment = Entity::get('PAGE_PAYMENT_CALLBACK');
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && strpos($requestUri, $pageCallbackPayment . '?') !== false) {
+        (new PaymentCallback(null, $modx))->render();
+    }
+
+    if (strpos($requestUri, Entity::get('PAGE_TNX')) !== false) {
+        echo $modx->runSnippet('CombaFunctions', ['fnct' => 'CheckoutTnx', 'pagefull' => 1]);
         exit;
     }
 }
 
 if ($e->name == 'OnDocFormSave') {
-    (new CombaHelper($modx))->updateReferenceProduct($id);
+    (new CombaHelper(null, $modx))
+        ->setLogLevel($_log_level)
+        ->updateReferenceProduct($id);
 }
 
 if ($e->name == 'OnWebPageInit') {
+
+    (new \Comba\Bundle\Modx\ModxOper())->setModx($modx)->initLang();
 
     $action = isset($_POST['action']) ? $modx->stripTags($_POST['action']) : null;
     if (empty($action)) {
@@ -107,7 +104,7 @@ if ($e->name == 'OnWebPageInit') {
 
     $goodsId = isset($_POST['goodsid']) ? (int)$modx->stripTags($_POST['goodsid']) : 0;
     $goodsGUID = isset($_POST['goodslguid']) ? $modx->stripTags($_POST['goodslguid']) : 0;
-    $tvname = !empty($tvname) ? $tvname : Entity::TV_GOODS_GOODS;
+    $tvname = !empty($tvname) ? $tvname : Entity::get('TV_GOODS_GOODS');
 
     if ($action == 'ch_insert') {
 
@@ -116,36 +113,42 @@ if ($e->name == 'OnWebPageInit') {
         }
 
         $amount = isset($_POST['count']) ? (int)$modx->stripTags($_POST['count']) : 0;
-        if (empty($amount) || $amount < 0 || $amount > Entity::GOODS_MAX_QUANTITY) {
+        if (empty($amount) || $amount < 0 || $amount > Entity::get('GOODS_MAX_QUANTITY')) {
             $amount = 1;
         }
 
-        $ch = new CombaHelper($modx);
+        $ch = new CombaHelper(null, $modx);
+        $ch->setLogLevel($_log_level);
         if ($ch->isBot()) {
+            $ch->log('NOTICE', 'Клієнт не є людиною.');
             return;
         }
 
-        $g2 = new ModxProduct();
-        $g2->obtainFromModxObject($modx->getDocumentObject('id', $goodsId, 'all'))
+        $g2 = new ModxProduct(null, $modx);
+        $g2->setLogLevel($_log_level)
+            ->obtainFromModxObject($modx->getDocumentObject('id', $goodsId, 'all'))
             ->set($g2->filter('goods_md5', $goodsGUID));
 
-        $cart = new ModxCart($modx);
-        // create new cart if not exists
+        $cart = new ModxCart(null, $modx);
+        $cart->setLogLevel($_log_level);
         if (empty($cart->getID())) {
+            // Створити новий Кошик
             $cart->setOptions('id', $ch->create());
         }
-        $cart->setOptions([
-            'Product' => $g2->get(),
-            'amount' => $amount
-        ]);
+        $cart->setOptions(
+            [
+                'Product' => $g2->get(),
+                'amount' => $amount
+            ]
+        );
 
         $ret = $cart->insert();
         if (!empty($ret) && $ret['result'] == 'ok') {
             $params = [
                 'action' => 'read',
-                'docTpl' => '@FILE:' . $tplPath . '/chunk-Cart' . $tplExt,
+                'docTpl' => '@FILE:' . $tplPath . '/chunk_cart' . $tplExt,
             ];
-            echo $modx->runSnippet('CombaHelper', $params); // read cart specification
+            echo $modx->runSnippet('CombaHelper', $params);
         }
         exit;
     }
@@ -156,16 +159,17 @@ if ($e->name == 'OnWebPageInit') {
             exit;
         }
 
-        if ((new CombaHelper($modx))->isBot()) {
+        if ((new CombaHelper(null, $modx))->setLogLevel($_log_level)->isBot()) {
             return;
         }
 
         $amount = isset($_POST['count']) ? $modx->stripTags($_POST['count']) : 0;
-        if (empty($amount) || $amount < 0 || $amount > Entity::GOODS_MAX_QUANTITY) {
+        if (empty($amount) || $amount < 0 || $amount > Entity::get('GOODS_MAX_QUANTITY')) {
             $amount = 1;
         }
 
-        $ret = (new ModxCart($modx))
+        $ret = (new ModxCart(null, $modx))
+            ->setLogLevel($_log_level)
             ->setOptions(
                 [
                     'specid' => $specid,
@@ -177,10 +181,10 @@ if ($e->name == 'OnWebPageInit') {
         if (!empty($ret) && $ret['result'] == 'ok') {
             $params = [
                 'action' => 'read',
-                'docTpl' => '@FILE:' . $tplPath . '/chunk-CheckoutSpec' . $tplExt,
-                'docEmptyTpl' => '@FILE:' . $tplPath . '/chunk-CheckoutEmpty' . $tplExt,
+                'docTpl' => '@FILE:' . $tplPath . '/chunk_checkout_spec' . $tplExt,
+                'docEmptyTpl' => '@FILE:' . $tplPath . '/chunk_checkout_empty' . $tplExt,
             ];
-            echo $modx->runSnippet('CombaHelper', $params); // read cart specification
+            echo $modx->runSnippet('CombaHelper', $params);
         }
         exit;
     }
@@ -190,21 +194,22 @@ if ($e->name == 'OnWebPageInit') {
         if (empty($specid)) {
             exit;
         }
-        if ((new CombaHelper($modx))->isBot()) {
+        if ((new CombaHelper(null, $modx))->setLogLevel($_log_level)->isBot()) {
             return;
         }
 
-        $ret = (new ModxCart($modx))
+        $ret = (new ModxCart(null, $modx))
+            ->setLogLevel($_log_level)
             ->setOptions('specid', $specid)
             ->delete();
 
         if (!empty($ret) && $ret['result'] == 'ok') {
             $params = [
                 'action' => 'read',
-                'docTpl' => '@FILE:' . $tplPath . '/chunk-CheckoutSpec' . $tplExt,
-                'docEmptyTpl' => '@FILE:' . $tplPath . '/chunk-CheckoutEmpty' . $tplExt,
+                'docTpl' => '@FILE:' . $tplPath . '/chunk_checkout_spec' . $tplExt,
+                'docEmptyTpl' => '@FILE:' . $tplPath . '/chunk_checkout_empty' . $tplExt,
             ];
-            echo $modx->runSnippet('CombaHelper', $params); // read cart specification
+            echo $modx->runSnippet('CombaHelper', $params);
         }
         exit;
     }
@@ -217,16 +222,21 @@ if ($e->name == 'OnWebPageInit') {
         $obj = json_decode($data);
 
         $answer = new Answer('result_ok');
-        $ch = new CombaHelper($modx);
-        $ch->initLang();
+        $ch = new CombaHelper(null, $modx);
+        $ch->setLogLevel($_log_level)
+            ->initLang();
 
         $captcha = $ch->captcha($obj->token ?? '');
         if (empty($captcha['error-codes']) && empty($captcha['confirm'])) {
-            $modx->logEvent(1, 1, $ch->getIpAddr() . ' ' . json_encode($captcha) . 'INFO ' . json_encode($obj), 'Checkout captcha ' . $captcha['score'] . ' ' . $ch->getIpAddr());
+            $ch->log(
+                'CRITICAL',
+                'Checkout captcha ' . $captcha['score'] . ' ' . $ch->getIpAddr() . "\n"
+                . $ch->getIpAddr() . ' ' . json_encode($captcha) . 'INFO ' . json_encode($obj)
+            );
         }
         /*
         if ($ch->isBot()) {
-            $modx->logEvent(1, 1, json_encode($obj), 'CombaHelper Checkout Bot detected');
+            $ch->log('CombaHelper Checkout Bot detected\n' . json_encode($obj), LOG_ERR);
             $answer->setOptionsEx('Стався збій в обробці кошика з товарами. Оновіть сторінку та спробуйте ще раз.');
         }
         */
@@ -258,26 +268,28 @@ if ($e->name == 'OnWebPageInit') {
             }
             $message = $modx->stripTags($message);
 
-            $ch->setOptions([
-                'doc_client_name' => $modx->stripTags($obj->name),
-                'doc_client_phone' => $modx->stripTags($obj->phone),
-                'doc_client_email' => $modx->stripTags($obj->email),
-                'doc_client_comment' => $message,
-                'doc_client_address' => $modx->stripTags($obj->address),
-                'doc_delivery' => $modx->stripTags($obj->typedelivery),
-                'doc_delivery_client_name' => $modx->stripTags($obj->name_delivery),
-                'doc_delivery_client_phone' => $modx->stripTags($obj->phone_delivery),
-                'doc_payment' => $modx->stripTags($obj->typepayment),
-                'doc_client_dncall' => $modx->stripTags($obj->option_dncall),
-                'doc_client_usebonus' => $modx->stripTags($obj->option_usebonus)
-            ]);
+            $ch->setOptions(
+                [
+                    'doc_client_name' => $modx->stripTags($obj->name),
+                    'doc_client_phone' => $modx->stripTags($obj->phone),
+                    'doc_client_email' => $modx->stripTags($obj->email),
+                    'doc_client_comment' => $message,
+                    'doc_client_address' => $modx->stripTags($obj->address),
+                    'doc_delivery' => $modx->stripTags($obj->typedelivery),
+                    'doc_delivery_client_name' => $modx->stripTags($obj->name_delivery),
+                    'doc_delivery_client_phone' => $modx->stripTags($obj->phone_delivery),
+                    'doc_payment' => $modx->stripTags($obj->typepayment),
+                    'doc_client_dncall' => $modx->stripTags($obj->option_dncall),
+                    'doc_client_usebonus' => $modx->stripTags($obj->option_usebonus)
+                ]
+            );
 
             $ret = $ch->checkOut();
             $curip = $ch->getIpAddr();
 
             if (!empty($ret)) {
 
-                $marketplace = (new ModxMarketplace())->get();
+                $marketplace = (new ModxMarketplace())->setLogLevel($_log_level)->get();
 
                 if ($ret['result'] == 'ok' && !empty($ret['Document']['uid'])) {
 
@@ -338,7 +350,7 @@ if ($e->name == 'OnWebPageInit') {
                     }
 
                     $answer->setOptionsEx(array_search_by_key($ch->getLang(), 'error_alert'));
-                    //$modx->logEvent($goodsId, 2, 'Помилка в процедурі Checkout ' . $ch->getUID() . ', ip ' . $curip, 'CombaHelper');
+                    $ch->log('ERROR', 'Помилка в процедурі Checkout ' . $ch->getUID() . ', ip ' . $curip);
                 }
             } else {
                 $ch->notify(
@@ -357,7 +369,7 @@ if ($e->name == 'OnWebPageInit') {
                         ));
 
                 $answer->setOptionsEx(array_search_by_key($ch->getLang(), 'error_alert'));
-                //$modx->logEvent($goodsId, 2, 'Помилка в процедурі Checkout ' . $ch->getUID() . ', ip ' . $curip, 'CombaHelper');
+                $ch->log('CRITICAL', 'Помилка в процедурі Checkout ' . $ch->getUID() . ', ip ' . $curip);
             }
         } else {
             $ch->notify(
@@ -374,9 +386,23 @@ if ($e->name == 'OnWebPageInit') {
                             'user_name' => $ch->User()->getName()
                         ]
                     ));
-            //$modx->logEvent(1, 1, $answer->getOptions('message') . '<br>INFO ' . json_encode($obj), 'Checkout error');
+            $ch->log('CRITICAL', 'Checkout error\n' . $answer->getOptions('message') . '<br>INFO ' . json_encode($obj));
         }
         echo $answer->serialize();
+        exit;
+    }
+    if ($action == 'ch_cabinet') {
+
+        $currentPage = isset($_POST['page']) ? (int)$modx->stripTags($_POST['page']) : null;
+        if (empty($currentPage)) {
+            exit;
+        }
+
+        $params = [
+            'fnct' => 'cabinet',
+            'page' => $currentPage
+        ];
+        echo $modx->runSnippet('CombaFunctions', $params);
         exit;
     }
 }

@@ -8,10 +8,10 @@ class FileStorage extends MyFile
 
     function __construct($filename = null)
     {
-        $this->_path = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR;
+        $this->_path = dirname(__DIR__, 2) . '/cache/';
         $this->mkdirSafe();
 
-        $filename = $filename ?: ($this->get_calling_class() ?: 'cache');
+        $filename = $filename ?: ($this->getCallerClass() ?: 'cache');
 
         parent::__construct($filename, $this->getPath());
 
@@ -44,7 +44,9 @@ class FileStorage extends MyFile
 
     public function items(string $name, bool $forcename = false): ?array
     {
-        if (empty($name)) return null;
+        if (empty($name)) {
+            return null;
+        }
 
         $name = basename($name);
         $directory = $this->getPath();
@@ -52,6 +54,4 @@ class FileStorage extends MyFile
         $pattern = $directory . $name;
         return glob($pattern);
     }
-
-
 }

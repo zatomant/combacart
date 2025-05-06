@@ -154,7 +154,7 @@ class AfterStoreUpdate
                             include_once(dirname(__DIR__) . '/src/Core/Entity.php');
                             $this->render("Встановлення/оновлення CombaCart завершено. ", "strong")
                                 ->render("Можна ")
-                                ->render("<a href=\"/" . \Comba\Core\Entity::PAGE_COMBA . "\">перейти</a>", "strong")
+                                ->render("<a href=\"/" . \Comba\Core\Entity::get('PAGE_COMBA') . "\">перейти</a>", "strong")
                                 ->render(" до керування замовленнями.\n\n");
                         } else {
                             $this->render("Встановлення/оновлення CombaCart завершено. ", "strong")

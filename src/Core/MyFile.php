@@ -14,14 +14,34 @@ class MyFile
     function __construct($filename = null, $path = null)
     {
         if (empty($path)) {
-            $path = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR;
+            $path = dirname(__DIR__, 2) . '/logs/';
         }
 
-        $this->setSecret('FFFFFF')->setPath($path);
+        $this->setSecret(self::resolveSecret())
+            ->setPath($path);
 
         if (!empty($filename)) {
             $this->setFilename($filename);
         }
+    }
+
+    /** Шукає секрет в Entity та env, інакше сформує автоматично
+     * @return string
+     */
+    private static function resolveSecret(): string
+    {
+        // шукаємо в змінних конфігурації
+        if (!empty($entitySecret = Entity::getProtected('MYFILE_SECRET'))) {
+            return (string)$entitySecret;
+        }
+
+        // повертаємо з .env файлів
+        if (!empty($envSecret = getenv('MYFILE_SECRET'))) {
+            return substr(trim($envSecret), 0, 32); // обрізаємо до 32 символів
+        }
+
+        // або формуємо автоматично
+        return substr(hash('sha256', __DIR__ . php_uname()), 0, 32);
     }
 
     public function delete(string $path = null): bool
@@ -135,20 +155,20 @@ class MyFile
         return $this;
     }
 
-    public function get_calling_class()
+    public function getCallerClass(): ?string
     {
-        //get the trace
-        $trace = debug_backtrace();
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
 
-        // Get the class that is asking for who awoke it
-        $class = $trace[1]['class'];
-
-        // +1 to i cos we have to account for calling this function
         for ($i = 1; $i < count($trace); $i++) {
-            if (isset($trace[$i])) // is it set?
-                if ($class != $trace[$i]['class']) // is it a different class
+            if (isset($trace[$i]['class'])) {
+                // Пропускаємо виклики всередині того ж класу
+                if ($trace[$i]['class'] !== ($trace[$i-1]['class'] ?? null)) {
                     return $trace[$i]['class'];
+                }
+            }
         }
+
+        return null;
     }
 
     public function sanitizeFilename(string $str, ?bool $isPath = false): string

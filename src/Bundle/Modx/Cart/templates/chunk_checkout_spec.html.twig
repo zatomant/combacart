@@ -1,0 +1,36 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+<div id="spec">
+    <p class="h5">{{ lang.cart_goods }}</p>
+    <div class="row mx-0">
+        <div class="col-12 col-md-8">
+            <div id="cart-list">
+                    {{ include([page.language ~ '/chunk_checkout_spec_row.html.twig', 'chunk_checkout_spec_row.html.twig']) }}
+            </div>
+        </div>
+        <div class="col-12 col-md-4 px-0 ps-md-1 pt-1 pt-md-0">
+            <div id="cart-summary">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item border rounded-lg bg-light fw-bold text-uppercase">{{ lang.summary }}
+                        <div role="status" class="specspinner invisible spinner-border text-success float-end">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="list-group-item">{{ doc.goods_count }} {{ macros.plurals(doc.goods_count,lang.goods_plurals|split(',') ) }} {{ lang.goods_summary }}
+                        <div class="float-end">{{ doc.doc_sum|number_format(2, '.', '') }} {{ doc.currency }}</div>
+                    </div>
+                    <div class="list-group-item" id="delivery_txt">{{ lang.delivery }}
+                        <div class="float-end text-muted">{{ lang.delivery_tips }}</div>
+                    </div>
+                    <div class="list-group-item">
+                        <strong>{{ lang.cart_total }}:
+                            <div class="float-end">{{ doc.doc_sum|number_format(2, '.', '') }} {{ doc.currency }}</div>
+                        </strong>
+                    </div>
+                    {% if doc.doc_sum < 50 %}
+                        <div class="list-group-item px-0 mt-1 bg-warning text-dark text-center rounded-lg"><i class="bi bi-exclamation-circle"></i> {{ lang.sum_mininum }} 50 грн</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

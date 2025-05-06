@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>{{ lang.request_status }} | {{ marketplace.label }}</title>
+    <title>{{ lang.request_status }} {% if doc.doc_number %}{{ doc.doc_number }}{% endif %} | {{ marketplace.label }}</title>
     <meta name="robots" content="noindex,nofollow">
     <meta property="og:image" content="{{ marketplace.icon }}">
     <meta property="og:title" content="{{ marketplace.label }} ">
@@ -88,7 +88,7 @@
         <header class="card-header d-flex align-items-center" style="background-color: #4b2f4f !important; color: #fccb04;">
             <a href="/" class="text-uppercase me-2">{{ marketplace.label }}</a> | {{ lang.request_status }}
             <div class="ms-auto">
-                <a href="/account" style="color:#408aca;"><i class="bi bi-person bi-2x"></i></a>
+                <a href="{{ page.cabinet }}" style="color:#408aca;"><i class="bi bi-person bi-2x"></i></a>
             </div>
         </header>
         <div class="card-body">
@@ -99,7 +99,7 @@
             {% block describle %}
             {% endblock %}
             {% block helper %}
-                {{ include('contact.html.twig')|raw }}
+                {{ include([page.language ~ '/contact.html.twig','contact.html.twig'])|raw }}
             {% endblock %}
         </div>
     </article>
@@ -107,7 +107,6 @@
 
 <noscript id="deferred-styles">
     <link rel="stylesheet" type="text/css" href="/assets/plugins/combacart/vendor/twbs/bootstrap/dist/css/bootstrap.min.css??v523"/>
-    <link rel="stylesheet" type="text/css" href="/src/Themes/templates/v4/css/style.min.css?v20220706"/>
     <link rel="stylesheet" type="text/css" href="/assets/plugins/combacart/vendor/twbs/bootstrap-icons/font/bootstrap-icons.css"/>
 </noscript>
 <script>

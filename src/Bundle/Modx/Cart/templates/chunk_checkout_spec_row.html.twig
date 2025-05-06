@@ -1,0 +1,90 @@
+{%  set onum = 1 %}
+{%  set oseller = 0 %}
+{% set uniqueSeller = [] %}
+{% for item in doc.specs|column('docspec_seller') %}
+    {% if item not in uniqueSeller %}
+        {% set uniqueSeller = uniqueSeller|merge([item]) %}
+    {% endif %}
+{% endfor %}
+{% if uniqueSeller|length == 1 %}
+    {% set oseller = uniqueSeller|first %}
+{% endif %}
+{% for spec in doc.specs %}
+
+    {% if doc.show_separately and oseller != spec.docspec_seller %}
+        <h5 class="mt-{% if onum == 1%}3{% else %}5{% endif%} ms-0">{{ lang.request }} {{ lang.num }}{{ onum }}
+            {% if spec.seller_label %}
+                <br><span class="fs-6 small text-body-secondary">{{ lang.seller }}: {{ spec.seller_label }}</span>
+            {% endif %}
+        </h5>
+        {% set oseller = spec.docspec_seller %}
+        {% set onum = onum + 1 %}
+    {% endif %}
+
+    <div data-specid="{{ spec.docspec_uid }}" class="orderspec row border rounded-lg py-0 text-center text-md-left align-items-center">
+        <div class="col-5 col-md-3 p-0">
+            <a href="{{ spec.docspec_product_weblink }}.html" title="{{ spec.docspec_image_ratios }}">
+                <picture>
+                    <source
+                            srcset="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &phpthumb=`webp=1` &preset=`checkout-goods`]]"
+                            type="image/webp">
+                    <img loading="lazy" data-src="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &preset=`checkout-goods` &oper=`lazy`]]"
+                         class="img-fluid rounded-lg lazy avail-{{ spec.ref_available }}">
+                </picture>
+            </a>
+        </div>
+        <div class="col-7 col-md-9">
+            <div class="float-end">
+                <button type="button" role="button" style="background-color:#fd7b88" class="btn btn-sm text-white rounded-pill deletebutton mt-1"
+                        data-specid="{{ spec.docspec_uid }}"
+                        title="{{ lang.action_delete_goods }}"><i class="bi bi-trash"></i> <span class="d-none d-md-inline">{{ lang.delete }}</span></button>
+            </div>
+            <div class="row align-self-start avail-{{ spec.ref_available }}">
+                <div class="col-12">
+                    <small>{{ lang.goods_code_title }}: {{ spec.docspec_product_sku }}</small>
+                    <br><a href="{{ spec.docspec_product_weblink }}.html">{{ spec.docspec_product_name }}</a>
+                    {% if spec.ref_available == 0 %}
+                        <p class="text-secondary"><b>{{ lang.goods_status_outofstock }}</b></p>
+                    {% else %}
+                        {% if spec.docspec_ondemand == 1 %}
+                            <br><b><span class="badge text-bg-warning">{{ lang.goods_status_ondemand }}</span></b>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if spec.ref_available > 0 %}
+                <div class="row align-self-center pt-1">
+
+                    <div class="col-12 col-md-3 align-self-center">
+                        <div class="text-center pb-1">
+                            {{ spec.docspec_price|number_format(2, '.', '') }} <small>{{ doc.currency }}</small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6 align-self-center">
+                        <div class="justify-content-center text-center">
+                            <div class="mx-auto pb-1">
+                                <div class="input-group boxcounter">
+                                    <button class="btn btn-outline-secondary" type="button" id="button-minus" name="button-minus">-</button>
+                                    <input step="1" min="0" max="999" id="count" name="count" value="{{ spec.docspec_amount }}" type="number" aria-label="змінити кількість"
+                                           class="form-control counter text-center" data-recount="true" autocomplete=off>
+                                    <button class="btn btn-outline-secondary" type="button" id="button-plus" name="button-plus">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-3 align-self-center">
+                        <dl class="d-flex d-md-block justify-content-center mb-0">
+                            <dt class="me-1"><small>{{ lang.sum }}</small></dt>
+                            <dd><b>{{ spec.docspec_sum|number_format(2, '.', '') }} <small>{{ doc.currency }}</small></b></dd>
+                        </dl>
+                    </div>
+
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+{% endfor %}

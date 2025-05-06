@@ -2,7 +2,6 @@
 
 namespace Comba\Bundle\Modx\Cart;
 
-use Comba\Bundle\CombaHelper\CombaHelper;
 use Comba\Bundle\Modx\ModxCart;
 use Comba\Bundle\Modx\ModxMarketplace;
 use Comba\Bundle\Modx\ModxProduct;
@@ -15,11 +14,19 @@ class ModxOperCartTnx extends ModxOperCart
     public function render()
     {
 
-        $ch = new CombaHelper($this->getModx());
-        $ch->setTemplatesPath(str_replace(getenv('DOCUMENT_ROOT'), '', dirname(__FILE__)) . '/templates/');
-
+        $pagefull = $this->getOptions('pagefull') ? 'pagefull_' : '';
         $docTpl = $this->getOptions('docTpl');
         $docEmptyTpl = $this->getOptions('docEmptyTpl');
+
+        if (!empty($pagefull)) {
+            $docTpl = (strpos($docTpl, '@FILE:/') === 0)
+                ? '@FILE:/' . $pagefull . substr($docTpl, 7)
+                : $docTpl;
+            $docEmptyTpl = (strpos($docEmptyTpl, '@FILE:/') === 0)
+                ? '@FILE:/' . $pagefull . substr($docEmptyTpl, 7)
+                : $docTpl;
+        }
+
         $currency = $this->getModx()->getPlaceholder('currency');
 
         $this->getModx()->tpl = \DLTemplate::getInstance($this->getModx());
@@ -31,15 +38,19 @@ class ModxOperCartTnx extends ModxOperCart
         if (!empty($uids)) {
             foreach ($uids as $uid) {
 
-                $cart = new ModxCart($this->getModx());
+                $cart = new ModxCart($this);
                 if (!empty($this->getOptions('id'))) {
                     $cart->setID($uid);
                 }
                 $doc = $cart->get();
 
-                if (empty($doc) && !$ch->isBot()) {
-                    $ch->log('Cart ID empty', LOG_ERR)->log('tpl ' . $docTpl, LOG_ERR)->log('IP ' . $ch->getIpAddr(), LOG_ERR);
-                    $ch->log(htmlspecialchars(filter_var($this->getAgent(), FILTER_SANITIZE_ENCODED)),LOG_NOTICE);
+                if (empty($doc) && !$this->isBot()) {
+                    $this->log('ERROR', 'Cart ID empty', [
+                            'tpl' => $docTpl,
+                            'IP' => $this->getIpAddr(),
+                            'agent' => htmlspecialchars(filter_var($this->getAgent(), FILTER_SANITIZE_ENCODED))
+                        ]
+                    );
                 }
 
                 $goods_count = 0;
@@ -48,15 +59,14 @@ class ModxOperCartTnx extends ModxOperCart
 
                     if (!empty($doc['specs'])) {
 
-                        $product = new ModxProduct($this->getModx());
+                        $product = new ModxProduct($this);
 
                         $doc['doc_sum'] = 0;
                         foreach ($doc['specs'] as &$row) {
                             $row['currency'] = $currency;
-                            $row['lguid'] = md5($row['docspec_product_sku']);
 
-                            if (Entity::SELLER_SHOW) {
-                                $_seller = (new ModxSeller())->setUID($row['docspec_seller'])->get();
+                            if (Entity::get('SELLER_SHOW_LABEL')) {
+                                $_seller = (new ModxSeller($this))->setUID($row['docspec_seller'])->get();
                                 $row['seller_label'] = $_seller['label'] ?? '';
                             }
 
@@ -72,12 +82,12 @@ class ModxOperCartTnx extends ModxOperCart
                                     $img2x3 = str_replace(array(':', 'x', 'y', 'width', 'height'), array('=', 'sx', 'sy', 'sw', 'sh'), $item['goods_image_ratio']['img2x3']);
 
                                     $row['docspec_image_ratios'] = json_encode(
-                                        array(
+                                        [
                                             'img16x9' => $img16x9,
                                             'img4x3' => $img4x3,
                                             'img1x1' => $img1x1,
                                             'img2x3' => $img2x3
-                                        )
+                                        ]
                                     );
                                     if ($row['docspec_product_sku'] == $item['goods_code']) {
                                         if (empty($item['goods_avail'])) {
@@ -128,20 +138,24 @@ class ModxOperCartTnx extends ModxOperCart
             $docTpl = $docEmptyTpl;
         }
 
-        $marketplace = filterArrayRecursive((new ModxMarketplace())->get(), null, ['uid', 'sellers']);
+        $marketplace = filterArrayRecursive((new ModxMarketplace($this))->get(), null, ['uid', 'sellers']);
 
-        $_t = $this->getParser()->getEngine()
-            ->createTemplate(
-                $this->getModx()->tpl->parseChunk($ch->getChunk($docTpl), $docs, true)
-            );
+        $_t = $this->getParser()
+            ->getEngine()
+            ->createTemplate($this->getChunk($docTpl));
 
-        return $this->getModx()->tpl
-            ->parseChunk('@CODE:' . $_t->render(
-                    [
-                        'docs' => $docs,
-                        'marketplace' => $marketplace,
-                    ]
-                ),
-                $docs, true);
+        // виклик обробки шаблону для twig
+        $_chunk = $_t->render(
+            [
+                'docs' => $docs,
+                'marketplace' => $marketplace,
+            ]
+        );
+
+        // виклик обробки шаблону для modx
+        return
+            $this->getModx()
+                ->tpl
+                ->parseChunk($_chunk, $docs, true);
     }
 }

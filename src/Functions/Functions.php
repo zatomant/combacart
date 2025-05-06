@@ -3,14 +3,14 @@
 namespace Comba\Functions;
 
 /**
- * filtered by preg_replace a-z0-9_
+ * filtered by preg_replace a-zA-Z0-9_-
  *
  * @param null|string $value
  * @return string|null
  */
 function sanitizeID(?string $value): ?string
 {
-    return !empty($value) ? preg_replace("/[^a-z0-9_-]/i", '', $value) : null;
+    return !empty($value) ? preg_replace("/[^a-zA-Z0-9_-]/i", '', $value) : null;
 }
 
 function sanitize(string $text): string
@@ -51,8 +51,8 @@ function array_search_by_key(array $array, string $key)
  */
 function array_sort(array $array, string $on, int $order = SORT_ASC): array
 {
-    $new_array = array();
-    $sortable_array = array();
+    $new_array = $sortable_array = [];
+
     if (count($array) > 0) {
         foreach ($array as $k => $v) {
             if (is_array($v)) {

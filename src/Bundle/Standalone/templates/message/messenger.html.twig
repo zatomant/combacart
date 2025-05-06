@@ -1,0 +1,270 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+<style>
+    {{ include('jQuery-TE_v.1.4.0/jquery-te-green.css')|raw }}
+</style>
+
+<form name="form-{{ dlgID }} datacontainer" id="form-{{ dlgID }}" action="" data-dlgid="{{ dlgID }}" data-docuid="{{ doc.doc_uid }}">
+    <div class="btn-toolbar headermenu" role="toolbar" aria-label="Toolbar with button groups">
+        <div class="btn-group mr-2 maingroup" role="group" aria-label="Main group"></div>
+    </div>
+    <main role="form">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="email-tab" data-bs-toggle="tab" data-bs-target="#email-tab-pane" type="button" role="tab" aria-controls="email-tab-pane"
+                        aria-selected="true">
+                    {{ lang.email }}</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="messenger-tab" data-bs-toggle="tab" data-bs-target="#messenger-tab-pane" type="button" role="tab" aria-controls="messenger-tab-pane"
+                        aria-selected="false">
+                    {{ lang.messenger }}</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="sms-tab" data-bs-toggle="tab" data-bs-target="#sms-tab-pane" type="button" role="tab" aria-controls="sms-tab-pane"
+                        aria-selected="false">
+                    {{ lang.sms }}</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="email-tab-pane" role="tabpanel" aria-labelledby="email-tab" tabindex="0">
+                <div class="px-3 p-1">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="order_ntfn_delivery_client_email">{{ lang.email }}</label>
+                            {{ macros.select_only(_context,'order_ntfn_delivery_client_email', doc.doc_client_email, {s : [ doc.doc_client_email,
+                                marketplace.email, marketplace.emailinfo] }) }}
+                        </div>
+                        <div class="col">
+                            <label for="order_ntfn_email_tpl">{{ lang.template }}</label>
+                            {{ macros.select_only(_context,'order_ntfn_email_tpl', doc.order_ntfn_email_tpl, {s:typeoftpl, t:'email', ref:"order_ntfn_email_text"}) }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="order_ntfn_email_mailfrom" class="fw-normal text-muted">{{ lang.email_reply_address }}</label>
+                            {{ macros.select_only(_context,'order_ntfn_email_mailfrom', marketplace.email, {s : [ marketplace.email, marketplace.emailinfo] ,class:'text-muted'}) }}
+                        </div>
+
+                        <div class="col">
+                            <label for="order_ntfn_email_subject">{{ lang.subject }}</label>
+                            <div class="input-group">
+                                {{ macros.inputlimit_only(_context, 'order_ntfn_email_subject', doc.order_ntfn_email_subject, {limit:80}) }}
+                                <button type="button" class="btn {{ btnsize }} btn-primary" id="order_ntfn_email_text_send" name="order_ntfn_email_text_send"
+                                        disabled>
+                                    {{ lang.send }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label for="order_ntfn_email_text">{{ lang.message }}</label>
+                            <div class="h-100">
+                                {{ macros.textarea(_context,'order_ntfn_email_text', doc.order_ntfn_email_text, { class:'editor', rows:'20' } ) }}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="tab-pane fade" id="messenger-tab-pane" role="tabpanel" aria-labelledby="messenger-tab" tabindex="0">
+                <div class="px-3 p-1">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="order_ntfn_delivery_client_phone_viber">{{ lang.phone }}</label>
+                            {{ macros.inputlistlimit_only(_context, 'order_ntfn_delivery_client_phone_viber', doc.doc_delivery_client_phone, {limit:'17',
+                                s:[{(doc.doc_delivery_client_phone):doc.doc_delivery_client_name},{(doc.doc_client_phone):doc.doc_client_name}] }) }}
+                        </div>
+                        <div class="col-md-8">
+                            <label for="order_ntfn_messenger_tpl">{{ lang.template }}</label>
+                            <div class="input-group">
+                                {{ macros.select_only(_context,'order_ntfn_messenger_tpl', doc.order_ntfn_messenger_tpl, {s:typeoftpl, t:'viber', ref:"order_ntfn_messenger_text"}) }}
+                                <button type="button" class="btn {{ btnsize }} btn-primary" id="order_ntfn_messenger_text_send" name="order_ntfn_messenger_text_send">
+                                    {{ lang.copy }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label for="order_ntfn_messenger_text">{{ lang.message }}</label>
+                            {{ macros.textarea(_context,'order_ntfn_messenger_text', doc.order_ntfn_messenger_text, { class:'textwrapper', rows:'20' } ) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="sms-tab-pane" role="tabpanel" aria-labelledby="sms-tab" tabindex="0">
+                <div class="px-3 p-1">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="order_ntfn_delivery_client_phone">{{ lang.phone }}</label>
+                            {{ macros.inputlistlimit_only(_context, 'order_ntfn_delivery_client_phone', doc.doc_delivery_client_phone, {limit:'17',
+                                s:[{(doc.doc_delivery_client_phone):doc.doc_delivery_client_name},{(doc.doc_client_phone):doc.doc_client_name}] }) }}
+                        </div>
+                        <div class="col">
+                            <label for="order_ntfn_sms_tpl">{{ lang.template }}</label>
+                            <div class="input-group">
+                                {{ macros.select_only(_context,'order_ntfn_sms_tpl', doc.order_ntfn_sms_tpl, {s:typeoftpl, t:'sms', ref:"order_ntfn_sms_text" }) }}
+                                <button type="button" class="btn {{ btnsize }} btn-primary" id="order_ntfn_sms_text_send" name="order_ntfn_sms_text_send" disabled>
+                                    {{ lang.send }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label for="order_ntfn_sms_text">{{ lang.message }}</label>
+                            <div class="input-group">
+                                {{ macros.inputlimit_only(_context, 'order_ntfn_sms_text', doc.order_ntfn_sms_text, {counter:true, limit:'74'}) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</form>
+
+<script>
+    (function () {
+        {{ include('jQuery-TE_v.1.4.0/jquery-te-1.4.0.min.js')|raw }}
+
+        $("#order_ntfn_email_text").jqte({
+            css: "jqte_green",
+            change: function () {
+                const value = $("#order_ntfn_email_text").val();
+                if (!value) {
+                    $("#order_ntfn_email_text_send").prop("disabled", true);
+                } else {
+                    $("#order_ntfn_email_text_send").prop("disabled", false);
+                }
+                Modify("{{ dlgID }}", true);
+            }
+        });
+
+        function editorSetContent(id, data) {
+            $("#" + id).jqteVal(data);
+            $("#" + id).change();
+        }
+
+        function onchangeSelectBoxAjaxinline(id, ref, orderuid) {
+            const tpl = $("#" + id).val();
+            const selected = $("#" + id).find('option:selected');
+            const labelt = selected.attr('data-labelt');
+
+            let hash = orderuid + '/' + tpl;
+
+            $.ajax({
+                url: window.location + '/tpl/' + hash,
+                method: "GET",
+                success: function (data, textStatus, jqXHR) {
+                    if (isJson(data)) {
+                        if ($("#" + ref).hasClass("editor")) {
+                            editorSetContent(ref, '');
+                        } else {
+                            $("#" + ref).val('');
+                        }
+                        $("#" + ref + "_send").prop("disabled", true);
+                        __responseAsMessage($.parseJSON(data));
+                    } else {
+                        if ($("#" + ref).hasClass("editor")) {
+                            editorSetContent(ref, data);
+                            $("#order_ntfn_email_subject").val(labelt);
+                        } else {
+                            $("#" + ref).val(data);
+                            $("#" + ref).change();
+                        }
+                        $("#" + ref + "_send").prop("disabled", false);
+                        if (!data) $("#" + ref + "_send").prop("disabled", true);
+                    }
+                }
+            });
+        }
+
+        function sendbyaction(obj) {
+            if (IsModify(obj.dlgID)) {
+                showConfirm(
+                    {
+                        txt: "<b>" + obj.confirm + "</b>",
+                        callback: function (e) {
+                            if (e) {
+                                const idSprdlg = showSpinner(obj.spinner);
+                                saveFormData({
+                                    formdata: btoa(encodeURIComponent($("#form-" + obj.dlgID).serialize({checkboxesAsBools: true}))),
+                                    sendtype: obj.action,
+                                    uid: obj.uid,
+                                    callback: function (response) {
+                                        hideSpinner(idSprdlg);
+                                        __responseAsMessage(response);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                );
+            }
+        }
+
+        $(document).ready(function () {
+
+            $('#form-{{ dlgID }}').on('click', '#order_ntfn_email_text_send', function (e) {
+                const docuid = $(this).closest('.datacontainer').attr('data-docuid');
+                sendbyaction({
+                    dlgID: '{{ dlgID }}',
+                    uid: docuid,
+                    action: 'sendemail',
+                    confirm: '{{ lang.send_email }}',
+                    spinner: '{{ lang.sending_email }}'
+                });
+            });
+            $('#form-{{ dlgID }}').on('click', '#order_ntfn_sms_text_send', function (e) {
+                const docuid = $(this).closest('.datacontainer').attr('data-docuid');
+                sendbyaction({
+                    dlgID: '{{ dlgID }}',
+                    uid: docuid,
+                    action: 'sendsms',
+                    confirm: '{{ lang.send_sms }}',
+                    spinner: '{{ lang.sending_sms }}'
+                });
+            });
+
+            $('#form-{{ dlgID }}').on('click', '#order_ntfn_messenger_text_send', function (e) {
+                copyToClipboard('order_ntfn_messenger_text');
+            });
+
+            $('#form-{{ dlgID }}').on('change', '#order_ntfn_email_tpl', function (e) {
+                e.preventDefault();
+                const docuid = $(this).closest('.datacontainer').attr('data-docuid');
+                onchangeSelectBoxAjaxinline(this.id, 'order_ntfn_email_text', docuid);
+            });
+            $('#form-{{ dlgID }}').on('change', '#order_ntfn_sms_tpl', function (e) {
+                e.preventDefault();
+                const docuid = $(this).closest('.datacontainer').attr('data-docuid');
+                onchangeSelectBoxAjaxinline(this.id, 'order_ntfn_sms_text', docuid);
+            });
+            $('#form-{{ dlgID }}').on('change', '#order_ntfn_messenger_tpl', function (e) {
+                e.preventDefault();
+                const docuid = $(this).closest('.datacontainer').attr('data-docuid');
+                onchangeSelectBoxAjaxinline(this.id, 'order_ntfn_messenger_text', docuid);
+            });
+
+            Modify('{{ dlgID }}', false);
+            $('#{{ dlgID }}').children().find('button.mainbtnclose').attr('id', 'justclose');
+
+            {% if doc.doc_client_email == '' %}
+                const tabFirst = $('#messenger-tab');
+                tabFirst.tab('show').click();
+            {% endif %}
+
+            $('#order_ntfn_email_tpl').change();
+            $('#order_ntfn_messenger_tpl').change();
+            $('#order_ntfn_sms_tpl').change();
+
+            if (!navigator.clipboard) {
+                // копіювання в буфер не працює без https
+                $('#order_ntfn_messenger_text_send').hide();
+            }
+
+        });
+    })()
+</script>

@@ -26,49 +26,25 @@ if (!defined('MODX_BASE_PATH')) {
 
 require_once __DIR__ . '/autoload.php';
 
-if (empty($docTpl)) $docTpl = '@FILE:/chunk-Cart';
-if (empty($docEmptyTpl)) $docEmptyTpl = '@FILE:/chunk-CartEmpty';
+if (empty($docTpl)) {
+    $docTpl = '@FILE:/chunk_cart';
+}
+if (empty($docEmptyTpl)) {
+    $docEmptyTpl = '@FILE:/chunk_cart_empty';
+}
 
 $out = '';
-
-if ($action == 'register') {
-    if (!empty($modx->userLoggedIn())) {
-        $modx->sendRedirect('/' . Entity::PAGE_LOGIN);
-        return;
-    }
-}
-
-if ($action == 'cabinet') {
-    $user = $modx->userLoggedIn();
-    if (empty($user)) {
-        $modx->sendRedirect('/' . Entity::PAGE_LOGIN);
-        return;
-    }
-    $details = [];
-    $_ui = $modx->getWebUserInfo($user['id']);
-    if (!empty($_ui) && is_array($_ui)) {
-        $details = [
-            'email' => array_search_by_key($_ui, 'email'),
-            'user' => array_search_by_key($_ui, 'internalKey'),
-            'session' => array_search_by_key($_ui, 'sessionid')
-        ];
-    }
-
-    $cabinet = new ModxOperCabinet(new Parser());
-    $cabinet->setModx($modx)
-        ->setOptions('details', $details)
-        ->detectLanguage();
-    $out = $cabinet->render();
-}
-
 $ch = null;
+
 if (in_array($action, ['readrequest', '_read', 'read'])) {
-    $ch = new CombaHelper($modx);
+    $ch = new CombaHelper(null, $modx);
+    $ch->setLogLevel(Entity::get('LOG_LEVEL'));
 }
 
 if ($action == 'readrequest') {
     $action = '_read';
-    $ch->setOptions([
+    $ch->setOptions(
+        [
             'pageid' => $ch->getCheckoutTnx(),
             'tnx' => true
         ]
@@ -83,28 +59,34 @@ if ($action == 'read') {
 if ($action == '_read') {
 
     $parser = new Parser();
-    $parser->addGlobal('page_checkout', Entity::PAGE_CHECKOUT);
-    $parser->addGlobal('page_checkout_tnx', Entity::PAGE_TNX);
+    $parser->addGlobal('page_checkout', Entity::get('PAGE_CHECKOUT'));
+    $parser->addGlobal('page_checkout_tnx', Entity::get('PAGE_TNX'));
 
-    $action = new ModxOperCart($parser);
+    $action = new ModxOperCart(null, $parser);
+    $action->setLogLevel(Entity::get('LOG_LEVEL'));
+
     if (!empty($ch->getOptions('tnx'))) {
-        $action = new ModxOperCartTnx($parser);
+        $action = new ModxOperCartTnx(null, $parser);
+        $action->setLogLevel(Entity::get('LOG_LEVEL'));
     }
 
     $action->setModx($modx);
     $parser->addGlobal('language', $action->detectLanguage());
 
     if (!empty($ch->getOptions('pageid'))) {
-        $action->setOptions([
+        $action->setOptions(
+            [
                 'id' => $ch->getOptions('pageid'),
                 'readOnly' => true
             ]
         );
     }
 
-    $action->setOptions([
+    $action->setOptions(
+        [
             'docTpl' => $docTpl ?? null,
             'docEmptyTpl' => $docEmptyTpl ?? null,
+            'pagefull' => $pagefull
         ]
     );
     $out = $action->render();

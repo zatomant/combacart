@@ -1,0 +1,7 @@
+{% if doc.payee %}
+    {% for pt in doc.payee.pt|filter(pt => pt.type == 'pt_online') %}
+        <div class="col-md">
+            {{ include([page.language ~ '/' ~ pt.provider|lower ~ '.html.twig', pt.provider|lower ~ '.html.twig'])|raw }}
+        </div>
+    {% endfor %}
+{% endif %}

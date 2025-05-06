@@ -1,0 +1,31 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+<div id="shopCart" class="text-center">
+    <a class="nav-link" data-bs-toggle="offcanvas" data-bs-target="#offcanvasHeaderMenuCart" data-toggle="modal" data-target="#menuCart" href="#"
+       role="button" id="dropdownMenuButton" title="{{ doc.goods_count }} {{ macros.plurals(dl.specs|length)|spaceless }}">
+        <i class="bi bi-cart-plus cart"></i>
+        <span style="background-color: var(--bs-blue);font-size: x-small;margin-left: -7px;"
+              class="position-absolute badge text-white border rounded-circle">{{ doc.goods_count }}</span>
+        <span class="d-none d-lg-block small">{{ lang.cart_title }}</span>
+    </a>
+</div>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasHeaderMenuCart" aria-labelledby="offcanvasHeaderMenuCartLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="offcanvasHeaderMenuCartLabel">{{ lang.cart_titlelong }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                <span class="fw-bold float-start">{{ doc.goods_count }} {{ macros.plurals(doc.goods_count, lang.goods_plurals|split(',') ) }} {{ lang.goods_summary }} {{ doc.doc_sum }} {{ doc.currency }}</span>
+                <a class="btn btn-sm btn-success rounded-pill float-end " href="{{ page_checkout }}.html">{{ lang.cart_edit }}</a>
+            </li>
+            {{ include([page.language ~ '/chunk_cart_row.html.twig', 'chunk_cart_row.html.twig']) }}
+            <li class="list-group-item align-items-center">
+                <strong>{{ lang.cart_total }}: <span class="float-end">{{ doc.goods_count }} {{ macros.plurals(doc.goods_count,lang.goods_plurals|split(',') ) }}</span></strong>
+            </li>
+        </ul>
+    </div>
+    <div class="container text-center justify-content-center py-2">
+        <a class="btn btn-success rounded-pill" href="{{ page_checkout }}.html">{{ lang.cart_tocheckout }}</a>
+    </div>
+</div>

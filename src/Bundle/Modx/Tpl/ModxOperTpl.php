@@ -9,31 +9,31 @@ use function Comba\Functions\safeHTML;
 class ModxOperTpl extends ModxOper
 {
 
-    function addPath(): ModxOperTpl
+    public function addPath(): ModxOperTpl
     {
         parent::addPath();
-        $this->addPathLoader(dirname(__FILE__) . '/templates');
-        return $this->addPathLoader(Entity::PATH_ROOT . DIRECTORY_SEPARATOR . Entity::PATH_TEMPLATES . '/tabledata');
+        $this->addPathLoader(Entity::get('PATH_ROOT') . DIRECTORY_SEPARATOR . Entity::get('PATH_TEMPLATES') . '/tabledata');
+        return $this;
     }
 
-    function setAction(): string
+    public function setAction(): string
     {
         return 'tpl';
     }
 
-    function render(array $dataset = null)
+    public function render(array $dataset = null)
     {
 
         if (!defined('COMBA_MODE_S')) die;
 
         if (!empty($tpl = safeHTML($this->getOptions('tpl')))) {
-            $this->setTemplateFilename($tpl . '.html');
+            $this->setTemplateFilename($tpl);
         }
 
         return $this->renderParser(
-            array(
+            [
                 'doc' => $dataset,
-            )
+            ]
         );
     }
 

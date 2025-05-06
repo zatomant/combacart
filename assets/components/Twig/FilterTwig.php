@@ -180,5 +180,4 @@ class CC_FilterTwig extends AbstractExtension
         return $countryCode ? $countryCode . ' ' . $formattedLocalNumber : $formattedLocalNumber;
     }
 
-
 }

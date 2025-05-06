@@ -1,8 +1,13 @@
-<div class="row">
+<div class="row g-0">
     <div class="col-12 col-lg-4">
-        {{ include('cabinet_user.html.twig')|raw }}
+        {% if details.id is empty %}
+            {{  include([page.language ~ '/cabinet_user.html.twig','cabinet_user.html.twig'])|raw }}
+        {% else %}
+            {{ include([page.language ~ '/cabinet_user_na.html.twig','cabinet_user_na.html.twig'])|raw }}
+        {% endif %}
     </div>
     <div class="col-12 col-lg-8">
-        {{ include('cabinet_list.html.twig')|raw }}
+        {% if not details.id %}<h4>{{ lang.cabinet_ordersmy }}</h4>{% endif %}
+        {{ include([page.language ~ '/cabinet_list.html.twig','cabinet_list.html.twig'])|raw }}
     </div>
 </div>

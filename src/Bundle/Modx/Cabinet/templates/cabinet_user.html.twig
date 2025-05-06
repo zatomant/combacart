@@ -1,8 +1,8 @@
 <div class="card mb-3 w-100">
-    <div class="row no-gutters">
+    <div class="row g-0">
         <div class="col-sm-4 text-center my-auto">
             {% if details.photo %}
-                <img src="{{ details.photo }}" class="img-thumbnail" width="150px">
+                <img src="{{ details.photo }}" class="img-thumbnail" width="150px" alt="{{ details.fullname }}">
             {% else %}
                 <i class="bi bi-person bi-2x img-thumbnail" style="color:#87caff"></i>
             {% endif %}

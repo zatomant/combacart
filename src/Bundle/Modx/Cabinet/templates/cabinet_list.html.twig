@@ -1,5 +1,4 @@
 {% import "/macro/htmltag.html.twig" as macros %}
-<h4>{{ lang.cabinet_ordersmy }}</h4>
 {% for doc in doclist %}
     <div class="card mb-2" data-uid="{{ doc.doc_uid }}">
         <div class="card-body">
@@ -59,7 +58,7 @@
                         {% elseif doc.doc_status == 2 %}
                             <span class="text-secondary">{{ lang[doc.doc_delivery] }}</span>
                         {% elseif doc.doc_status != 7 %}
-                            <span class="text-secondary small">{{ lang[doc.doc_delivery]  }}</span>
+                            <span class="text-secondary small">{{ lang[doc.doc_delivery] }}</span>
                             <a href="{{ macros.linktracking(_context,{onlylink:true})|spaceless }}" class="text-primary float-end mb-2" target="_blank">
                                 <i class="bi bi-clock-history ms-2"></i>
                             </a>
@@ -87,9 +86,10 @@
                                                 <a href="{{ spec.docspec_product_weblink }}.html" title="{{ spec.docspec_product_name }}">
                                                     <picture>
                                                         <source
-                                                                srcset="/[[GetImage? &src=`{{ spec.docspec_product_photo }}` &phpthumb=`webp=1` &preset=`goods-tnx`]]"
+                                                                srcset="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &phpthumb=`webp=1` &preset=`goods-tnx`]]"
                                                                 type="image/webp">
-                                                        <img loading="lazy" data-src="/[[GetImage? &src=`{{ spec.docspec_product_photo }}` &preset=`goods-tnx`]]"
+                                                        <img loading="lazy"
+                                                             data-src="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &preset=`goods-tnx`]]"
                                                              src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII="
                                                              width="55px"
                                                              height="55px"
@@ -130,5 +130,56 @@
         </div>
     </div>
 {% else %}
-    {{ include('cabinet_list_empty.html.twig')|raw }}
+    {{ include([page.language ~ '/cabinet_list_empty.html.twig','cabinet_list_empty.html.twig'])|raw }}
 {% endfor %}
+
+{% if paging.next %}
+    <div class="mt-3 text-center more_wrap">
+        <button class="btn btn-primary btn_cabinet_more" data-next="{{ paging.next }}"><i class="bi bi-arrow-clockwise"></i> {{ lang.action_more }}</button>
+        <script>
+            document.addEventListener("DOMContentLoaded", function (event) {
+
+                jQuery(document).ready(function (jQuery) {
+
+                    function getContent(data, elem){
+                        let url = window.location.href;
+                        $.ajax(
+                            {
+                                url: url,
+                                data: data,
+                                type:'POST',
+                                timeout: 10000,
+                                success:function (data) {
+                                    ToastHide();
+                                    if (data){
+                                        if (data && data.length > 20){
+                                            const $wrap = jQuery(elem);
+                                            const $newContent = jQuery(data).css("display", "none");
+                                            $wrap.replaceWith($newContent);
+                                            $newContent.slideDown(300, function () {
+                                                jQuery('html, body').animate({
+                                                    scrollTop: $newContent.offset().top - 100
+                                                }, 400);
+                                            });
+                                        }
+                                    }
+                                },
+                                error:function () {
+                                    ToastHide();
+                                    showError('[(__error_reload)]');
+                                }
+                            });
+                    }
+
+                    jQuery(document.body).on("click", ".btn_cabinet_more", function () {
+                        let $btn = jQuery(this);
+                        let next = jQuery(this).attr("data-next");
+                        $btn.hide();
+                        showSpinner("[(__processing)]");
+                        getContent({action: "ch_cabinet", page: next}, jQuery(".more_wrap"));
+                    })
+                })
+            })
+        </script>
+    </div>
+{% endif %}

@@ -3,13 +3,14 @@
 namespace Comba\Bundle\Modx;
 
 use Comba\Core\Entity;
+use DocumentParser;
 
 class ModxMarketplace extends ModxOptions
 {
 
-    public function __construct($modx = null)
+    public function __construct(?object $parent = null, ?DocumentParser $modx = null)
     {
-        parent::__construct($modx);
+        parent::__construct($parent, $modx);
         $this->isCachable = true;
 
         $auth = Entity::getData('Marketplace');
@@ -22,7 +23,7 @@ class ModxMarketplace extends ModxOptions
      */
     public function sellers(string $uid = null): array
     {
-        $_sl = array();
+        $_sl = [];
         $el = $this->get();
         if ($uid){
             foreach ($el['sellers'] as $s){
@@ -45,7 +46,10 @@ class ModxMarketplace extends ModxOptions
     {
         $this->delOptions('Document');
         $ret = json_decode($this->request('Marketplace', ['uid' => $this->getUID()]), true);
-        if ($ret['result'] == 'ok') $this->set($ret['Document']);
+
+        if ($ret['result'] == 'ok') {
+            $this->set($ret['Document']);
+        }
         return $this->getOptions('Document');
     }
 

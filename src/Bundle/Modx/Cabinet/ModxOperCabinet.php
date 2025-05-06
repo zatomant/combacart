@@ -3,21 +3,13 @@
 namespace Comba\Bundle\Modx\Cabinet;
 
 use Comba\Bundle\CombaApi\CombaApi;
-use Comba\Bundle\CombaHelper\CombaHelper;
 use Comba\Bundle\Modx\ModxMarketplace;
 use Comba\Bundle\Modx\ModxOper;
 use function Comba\Functions\array_search_by_key;
 use function Comba\Functions\filterArrayRecursive;
 
-//require_once MODX_BASE_PATH . 'assets/snippets/DocLister/lib/DLTemplate.class.php';
-
 class ModxOperCabinet extends ModxOper
 {
-
-    public function addPath(): ModxOperCabinet
-    {
-        return $this->addPathLoader(dirname(__FILE__) . '/templates');
-    }
 
     public function setAction(): string
     {
@@ -26,40 +18,50 @@ class ModxOperCabinet extends ModxOper
 
     public function render()
     {
-        $docTpl = '@FILE:/cabinet';
+        $docTpl = $this->getOptions('page') ? '@FILE:/cabinet_list' : '@FILE:/cabinet';
 
-        $ch = new CombaHelper($this->getModx());
-        $ch->setTemplatesPath(str_replace(getenv('DOCUMENT_ROOT'), '', dirname(__FILE__)) . '/templates/');
 
-        $ca = new CombaApi();
-        $ret = json_decode($ca->request('CabinetRead',
-            [
-                'User' => [
-                    'useruid' => array_search_by_key($this->getOptions('details'), 'id'),
-                    'useremail' => array_search_by_key($this->getOptions('details'), 'email'),
-                    'usersession' => array_search_by_key($this->getOptions('details'), 'session'),
-                ],
-                'Marketplace' => (new ModxMarketplace())->get()['uid']
-            ]
-        ), true);
+        $marketplace = new ModxMarketplace($this);
 
-        $doc = ($ret['result'] == 'ok') ? $ret['Document'] : array();
+        $ret = json_decode(
+            (new CombaApi())->request('CabinetRead',
+                [
+                    'User' => [
+                        'id' => array_search_by_key($this->getOptions('details'), 'id'),
+                        'email' => array_search_by_key($this->getOptions('details'), 'email'),
+                        'session' => array_search_by_key($this->getOptions('details'), 'session'),
+                    ],
+                    'Marketplace' => $marketplace->get()['uid'],
+                    'page' => $this->getOptions('page') ?? null
+                ]
+            ), true);
+
+        $doc = $ret['result'] && $ret['result'] == 'ok' ? $ret['Document'] : [];
 
         $this->initLang();
 
-        $marketplace = (new ModxMarketplace())->get();
-        $marketplace = filterArrayRecursive($marketplace, null, ['uid', 'sellers']);
+        $mp_data = $marketplace->get();
+        $mp_data = filterArrayRecursive($mp_data, null, ['uid', 'sellers']);
 
         $this->getModx()->tpl = \DLTemplate::getInstance($this->getModx());
-        $_t = $this->getParser()->getEngine()->createTemplate($this->getModx()->tpl->parseChunk($ch->getChunk($docTpl), $doc, true));
+        $_t = $this->getParser()
+            ->getEngine()
+            ->createTemplate(
+                $this->getModx()
+                    ->tpl
+                    ->parseChunk($this->getChunk($docTpl), $doc, true)
+            );
 
-        return $this->getModx()->tpl->parseChunk('@CODE:' . $_t->render(
+        return $this->getModx()->tpl->parseChunk('@CODE:' .
+            $_t->render(
                 [
                     'doclist' => $doc,
                     'details' => $this->getOptions('details'),
-                    'marketplace' => $marketplace,
+                    'marketplace' => $mp_data,
+                    'paging' => $ret['paging'] ?? null
                 ]
-            ), $doc, true);
+            ),
+            $doc, true);
 
     }
 }

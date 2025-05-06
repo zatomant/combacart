@@ -20,7 +20,12 @@ class MemcachedStorage
 
         $this->_path = '' ;
 
-        $this->_key = $key ?: ($this->get_calling_class() ?: 'cache');
+        $this->_key = $key ?: ($this->getCallerClass() ?: 'cache');
+    }
+
+    public function getStats()
+    {
+        return $this->memcached->getStats();
     }
 
     public function setCachePrefix(string $name): MemcachedStorage
@@ -81,7 +86,9 @@ class MemcachedStorage
 
     public function items(string $name, bool $forcename = false): ?array
     {
-        if (empty($name)) return null;
+        if (empty($name)) {
+            return null;
+        }
 
         $name = basename($name);
         $directory = $this->_path;
@@ -102,13 +109,17 @@ class MemcachedStorage
             $this->memcached->set($this->keyListKey, $keyList);
         }
 
-        $this->memcached->set($key, $data);
+        $ttl = 0;
+        if ($_json = json_decode($data, true)){
+            $ttl = $_json['lifetime'] ? $_json['lifetime'] - time() : 0;
+        }
+
+        $this->memcached->set($key, $data, $ttl);
         return $this;
     }
 
     public function get() {
-        $key = $this->getFullPath();
-        return $this->memcached->get($key);
+        return $this->memcached->get($this->getFullPath());
     }
 
     public function delete(string $path = null): bool
@@ -125,19 +136,19 @@ class MemcachedStorage
         return $this->memcached->delete($key);
     }
 
-    public function get_calling_class()
+    public function getCallerClass(): ?string
     {
-        //get the trace
-        $trace = debug_backtrace();
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
 
-        // Get the class that is asking for who awoke it
-        $class = $trace[1]['class'];
-
-        // +1 to i cos we have to account for calling this function
         for ($i = 1; $i < count($trace); $i++) {
-            if (isset($trace[$i])) // is it set?
-                if ($class != $trace[$i]['class']) // is it a different class
+            if (isset($trace[$i]['class'])) {
+                // Пропускаємо виклики всередині того ж класу
+                if ($trace[$i]['class'] !== ($trace[$i-1]['class'] ?? null)) {
                     return $trace[$i]['class'];
+                }
+            }
         }
+
+        return null;
     }
 }

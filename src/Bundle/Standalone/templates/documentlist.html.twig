@@ -1,0 +1,30 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+{% extends "body.html.twig" %}
+{% block table %}
+    {% if ( SERVER_MODE == 'compatible') %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> {{ App.name}} {{ lang.app_mode_compatible_tips }}
+        </div>
+    {% elseif ( SERVER_MODE == 'cloud')%}
+        <div class="alert alert-info text-center" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> {{ lang.app_mode_cloud_tips }}
+        </div>
+    {% endif %}
+    <table class="table table-responsive doc_request" id="doc_request">
+        <thead>
+        <tr>
+            <th scope="col">{{ lang.num }}</th>
+            <th scope="col">{{ lang.date }}</th>
+            <th scope="col">{{ lang.info }}</th>
+            <th scope="col">{{ lang.seller }}</th>
+            <th scope="col">{{ lang.sum }}</th>
+            <th scope="col">{{ lang.comments }}</th>
+            <th scope="col">{{ lang.status }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{ include('table.html.twig') }}
+        </tbody>
+    </table>
+    <div class="td-none text-center">{{ lang.table_isempty }}</div>
+{% endblock %}

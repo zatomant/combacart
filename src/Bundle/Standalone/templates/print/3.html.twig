@@ -1,0 +1,50 @@
+<style>
+    @media print {
+    {{ include ('print/print.css') }}
+        body {
+            line-height: 1.0 !important
+        }
+
+        .card img {
+            height: 100px;
+            width: 100px;
+        }
+    }
+</style>
+{{ include('print/header-1.html.twig')|clearEOF |raw }}
+<p>{{ lang.sum }}: {{ doc.doc_sum|number_format(2) }}</p>
+<div class="row row-print">
+    {% for specrow in doc.specs %}
+    <div class="print-in-row card mb-1 {% if specrow.docspec_enable == 0 %}bg-warning{% endif %}" style="width: 250px;">
+        <div class="row g-0">
+            <div class="col">
+                <img class="card-img float-start me-2 mb-2 lazy"
+                     src="/{{ specrow.ref_image|default(specrow.docspec_product_photo)|replace({'assets/images/':'assets/cache/images/250x250_1x1-checkout/'})|trim('/',side='left') }}"
+                     width="100" height="100" alt="{{ specrow.docspec_product_name }}">
+                <div class="card-body py-0 text-center">
+                    <div>{{ specrow.docspec_price|number_format(2) }} x <b>{{ specrow.docspec_amount|number_format(0) }} шт.</b></div>
+                    {% if specrow.ipiw_amount %}
+                    <hr class="mt-2 mb-0">
+                    {% if specrow.ipiw_amount < specrow.docspec_amount %}
+                    <div class="bg-danger text-white text-center">
+                        {% else %}
+                        <div class="text-muted text-center">
+                            {% endif %}
+                            <span style="font-size:75%">{{ specrow.ipiw_amount|round(1) }} {{ specrow.ipiw_measure }} на складі</span>
+                            <hr class="mt-1 mb-2">
+                        </div>
+                        {% endif %}
+                        <a href="/{{ specrow.ref_url|default(specrow.docspec_product_weblink) }}" class="stretched-link"
+                           target=_blank>{{ specrow.docspec_product_sku }}</a>
+                        {% if specrow.docspec_enable == 0 %}
+                            <s>{{ specrow.docspec_product_name|raw }}</s>
+                        {% else %}
+                            {{ specrow.docspec_product_name|raw }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>

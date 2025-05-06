@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="uk" data-bs-theme="">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{{ lang.request }} | {{ marketplace.label }}</title>
+    <meta name="robots" content="noindex,nofollow">
+    <meta http-equiv="Cache-Control" content="private, max-age=3600">
+    <link rel="manifest" href="/assets/plugins/combacart/assets/favicon/site.webmanifest">
+    <link rel="icon" href="/assets/plugins/combacart/assets/favicon/favicon.ico" type="image/x-icon">
+
+</head>
+<body>
+<div class="container mw-100 px-0">
+    <nav class="navbar navbar-expand sticky-top text-bg-success px-2">
+        <a class="navbar-brand p-0 mx-2 d-none d-md-inline" href="/">
+            <img src="https://comba.com.ua/assets/favicon/android-chrome-256x256.png" width="40"> {{ marketplace.label }}</a>
+        <div style="flex-grow: 0.6;" class=" mx-auto">
+            <div id="search-form" class="d-flex" xmlns="http://www.w3.org/1999/html">
+                <label for="inptSearch"></label>
+                <div class="ctrl ctrlsearch flex-fill input-group">
+                    <input type="text" class="form-control border form-control-sm" placeholder="{{ lang.search_tips }}"
+                           id="inptSearch" value="">
+                    <button class="btn {{ btnsize }} btn-light border-start-0 btnclear d-none" data-target="inptSearch"><i class="bi bi-x-lg"></i></button>
+                </div>
+                <button class="btn {{ btnsize }} btn-primary" id="btnSearch"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+        </div>
+        {% if App.newVersionAvailable %}
+            <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#newVersionAvailable">
+                <i class="bi bi-info-lg"></i>
+            </button>
+        {% endif %}
+        <button class="btn {{ btnsize }} btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight"
+                aria-controls="offcanvasRight">
+            <i class="bi bi-person iconuser" id="UserIcon"></i>
+            <span class="d-none d-md-inline-block">{{ user.name }}</span>
+        </button>
+    </nav>
+
+    {% block table %}
+    {% endblock %}
+</div>
+
+{% include 'top-navbar-user.html.twig' %}
+
+{% if App.newVersionAvailable %}
+    {% include 'newVersionAvailable.html.twig' %}
+{% endif %}
+
+<div class="modal mymodal overflow-auto" tabindex="-1" role="dialog" id="modaldialog" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-fullscreen-lg-down modal-lg modal-dialog-scrollable ms-auto" role="document">
+        <div class="modal-content h-100 h1-auto mnh-100">
+            <div class="modal-header pl-2 p-1 text-nowrap justify-content-between">
+                <div class="modal-title overflow-hidden"></div>
+                <button type="button" class="btn {{ btnsize }} btn-primary mainbtnclose" data-bs-dismiss="modal" id="btnclose">
+                    <span class="d-none d-md-inline-block">{{ lang.close }}&nbsp;</span>
+                    <i class="bi bi-x-square"></i>
+                </button>
+            </div>
+            <div class="modal-body px-1 p-0">
+                <div class="d-flex align-items-center vh-100">
+                    <div class="mx-auto align-items-center mdspinner">
+                        <span>{{ lang.waitforresult }}</span>
+                        <div class="spinner-border text-success ms-auto" role="status" aria-hidden="true"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer p-0 justify-content-between position-static text-bg-white" style="font-size: x-small;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="dlgErrorModal" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true" style="z-index:9999">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-bg-warning">
+                <div class="d-flex align-items-center">
+                    <strong><span>{{ lang.error }}...</span></strong>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="dlgError" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true" style="z-index:9999">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-bg-danger">
+                <div class="d-flex align-items-center">
+                    <strong><span>{{ lang.error }}...</span></strong>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="dlgInfo" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="dlgInfoLabel" aria-hidden="true" style="z-index:9999">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body rounded">
+                <button type="button" class="btn-close dlgspinnerclose d-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="d-flex align-items-center">
+                    <span>Виконано успішно</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="dlgSpinner" data-bs-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="dlgSpinnerLabel" aria-hidden="true" style="z-index:9999">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body b1g-light rounded">
+                <button type="button" class="btn-close dlgspinnerclose d-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="d-flex align-items-center">
+                    <span>{{ lang.waitforresult }}</span>
+                    <span class="ms-auto">
+                        <div class="spinner-border text-success ms-auto" role="status" aria-hidden="true"></div>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="printModal" tabindex="-1" aria-labelledby="printModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header py-1">
+                <h5 class="modal-title" id="printModalLabel">{{ lang.print_form }}</h5>
+                <button type="button" class="btn-close border" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="printContent">
+            </div>
+            <div class="modal-footer py-1 justify-content-center">
+                <button type="button" class="btn {{ btnsize }} btn-primary btnprint">{{ lang.action_print }}</button>
+                <button type="button" class="btn {{ btnsize }} btn-secondary" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ul class="dropdown-menu print mb-0" style="z-index:9999" id="dlgprint">
+    <li class="py-1 px-3 fw-semibold">{{ lang.specs }}
+        <ul class="list-unstyled">
+            <li>
+                <button class="dropdown-item" data-tpl="printorderspec3">{{ lang.specs_form }}</button>
+            </li>
+            <li>
+                <button class="dropdown-item" data-tpl="printorderspecslider">{{ lang.specs_phone }}</button>
+            </li>
+            <li>
+                <div class="dropdown-divider"></div>
+            </li>
+            <li>
+                <button class="dropdown-item" data-tpl="printordercheque">{{ lang.cheque }}</button>
+            </li>
+        </ul>
+    </li>
+</ul>
+
+<noscript id="deferred-styles">
+    <link rel="stylesheet" type="text/css" href="/assets/plugins/combacart/vendor/twbs/bootstrap/dist/css/bootstrap.min.css??{{ App.fver }}">
+    <link rel="stylesheet" type="text/css" href="/assets/plugins/combacart/assets/css/style.css?{{ App.fver }}">
+    <link rel="stylesheet" type="text/css" href="/assets/plugins/combacart/vendor/twbs/bootstrap-icons/font/bootstrap-icons.css">
+</noscript>
+<script>
+    var scriptLoadMap = [];
+
+    const loadScript = (FILE_URL, async = true, type = "text/javascript", callback) => {
+        return new Promise((resolve, reject) => {
+
+            console.log('getting ' + FILE_URL);
+            if (!scriptLoadMap.includes(FILE_URL)) {
+                // does not exist
+                try {
+                    let body;
+                    let scriptEle;
+                    if (type === "text/javascript") {
+                        scriptEle = document.createElement("script");
+                        scriptEle.src = FILE_URL;
+                        body = document.body;
+                    } else {
+                        scriptEle = document.createElement("link");
+                        scriptEle.media = 'all';
+                        scriptEle.rel = 'stylesheet';
+                        scriptEle.href = FILE_URL;
+                        body = document.getElementsByTagName('head')[0];
+                    }
+                    scriptEle.type = type;
+                    scriptEle.async = async;
+
+                    scriptEle.addEventListener("load", (ev) => {
+                        console.log('loaded ' + FILE_URL);
+                        scriptLoadMap.push(FILE_URL);
+                        resolve({status: true});
+                        if (callback) callback();
+                    });
+
+                    scriptEle.addEventListener("error", (ev) => {
+                        console.log('fail loaded ' + FILE_URL);
+                        reject({
+                            status: false,
+                            message: `Failed to load the script ` + FILE_URL
+                        });
+                    });
+
+                    body.appendChild(scriptEle);
+                } catch (error) {
+                    reject(error);
+                }
+            } else if (callback) callback();
+        });
+    };
+
+    {{ include('color-modes.js')|raw }}
+    {{ include('body.js')|raw }}
+</script>
+<script src="/assets/plugins/combacart/vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/plugins/combacart/assets/js/jQuery/jquery.min.js?{{ App.fver }}"></script>
+<script src="/assets/plugins/combacart/src/Themes/templates/dlg.js?{{ App.fver }}"></script>
+<script src="/assets/plugins/combacart/src/Themes/templates/serialize.js?{{ App.fver }}"></script>
+<script src="/assets/plugins/combacart/assets/js/bootbox/bootbox.min.js?{{ App.fver }}"></script>
+
+</body>
+</html>

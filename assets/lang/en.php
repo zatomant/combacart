@@ -21,8 +21,8 @@ return [
     'button_ok' => 'OK',
     'buy' => 'Add to Cart',
     'cabinet_exit' => 'Logout',
-    'cabinet_orders_empty' => 'No orders found',
-    'cabinet_orders_empty_tip' => 'No order was found with this account and email',
+    'cabinet_orders_empty' => 'No orders yet',
+    'cabinet_orders_empty_tip' => 'We couldn’t find any orders for this account. Maybe you haven’t placed one yet.',
     'cabinet_ordersmy' => 'My orders',
     'cabinet_profile_update' => 'Last profile update',
     'cart_edit' => 'Edit cart',
@@ -187,5 +187,9 @@ return [
     'app_update_tips' => 'Please contact the administrator to perform the update.',
     'app_mode_compatible_tips' => 'running in compatibility mode',
     'app_mode_cloud_tips' => 'Cloud mode is enabled in the settings. To manage Orders, go to the Comba cloud panel',
-
+    'user_na' => 'Guest user',
+    'action_singin' => 'Sign in',
+    'action_singup' => 'Sign up',
+    'action_goto_index' => 'Go to main',
+    'action_more' => 'Show more'
 ];

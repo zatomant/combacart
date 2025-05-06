@@ -2,11 +2,11 @@
   "name": "zatomant/combacart",
   "description": "Плагін для швидкого запуску інтернет магазину на Evolution CMS (EVO)",
   "keywords": [
-    "combacart","ecommerce","cart","checkout"
+    "comba","combacart","ecommerce","cart","checkout"
   ],
   "type": "library",
   "license": "MIT",
-  "version": "2.6.34",
+  "version": "2.6.43",
   "version_short": "2.6",
   "authors": [
     {

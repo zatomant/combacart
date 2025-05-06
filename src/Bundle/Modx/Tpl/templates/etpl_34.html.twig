@@ -9,7 +9,7 @@
             <strong>{{ marketplace.label }}</strong>
         </td>
         <td nowrap="" width="40%" align="center" style="color:#FEFEFE;background-color:#88508e">
-            <a href="https://{{ marketplace.site }}/account.html" ref="nofollow">{{ lang.cabinet }}</a>
+            <a href="https://{{ marketplace.site }}{{ page.root }}{{ page.cabinet }}" ref="nofollow">{{ lang.cabinet }}</a>
         </td>
     </tr>
     <tr>
@@ -21,7 +21,7 @@
     <tr>
         <td width="95%">
             <strong>{{ lang.request}} {{ lang.num }}{{ doc.doc_number }} {{ lang.of }}  {{ doc.doc_date_create|date("d.m.Y") }}</strong><br>
-            <font size="-1">{{ lang.email_tracking_tips1 }}<a href="https://{{ marketplace.site }}/account.html" ref="nofollow">{{ lang.cabinet }}</a> {{ lang.email_tracking_tips2 }}
+            <font size="-1">{{ lang.email_tracking_tips1 }}<a href="https://{{ marketplace.site }}{{ page.root }}{{ page.cabinet }}" ref="nofollow">{{ lang.cabinet }}</a> {{ lang.email_tracking_tips2 }}
                 <a href="//{{ macros.linktracking(_context,{onlylink:true})|spaceless }}" target="_blank">{{ lang.request_status }}</a></font>
         </td>
     </tr>
@@ -47,7 +47,7 @@
         <tr>
             <td>
                 <span style="color:#999999">{{ dl.docspec_product_sku }}</span>
-                <br><a href="https://{{ marketplace.site }}/{{ dl.docspec_product_weblink }}.html">{{ dl.docspec_product_name }}</a>
+                <br><a href="https://{{ marketplace.site }}{{ page.root }}{{ dl.docspec_product_weblink }}.html">{{ dl.docspec_product_name }}</a>
             </td>
             <td>{{ dl.docspec_price|number_format(2) }}</td>
             <td align="center">{{ dl.docspec_amount|number_format(0) }}</td>

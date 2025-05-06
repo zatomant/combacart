@@ -2,17 +2,18 @@
 
 namespace Comba\Bundle\Modx;
 
+use DocumentParser;
+
 class ModxCart extends ModxOptions
 {
 
     private ModxUser $_user;
 
-    public function __construct($modx = null)
+    public function __construct(?object $parent = null, ?DocumentParser $modx = null)
     {
-        parent::__construct($modx);
+        parent::__construct($parent, $modx);
 
-        $this->_user = new ModxUser($this->getModx());
-        $this->_user->setLogLevel($this->getLogLevel());
+        $this->_user = new ModxUser($this);
 
         $this->isCachable = true;
         $this->cacheLifetime = 3600;
@@ -29,10 +30,15 @@ class ModxCart extends ModxOptions
             return null;
         }
 
-        $doc = array();
+        $doc = [];
         $ret = json_decode(
-            $this->request('DocumentRead', ['Document' => ['uid' => $this->getID()]]
-            ), true);
+            $this->request('DocumentRead', [
+                    'Document' => [
+                        'uid' => $this->getID()
+                    ]
+                ]
+            ),
+            true);
 
         if ($ret['result'] == 'ok') {
 
@@ -87,11 +93,17 @@ class ModxCart extends ModxOptions
             return null;
         }
 
-        $cart = json_decode(
-            $this->request('DocumentGetCurrentId', ['Document' => ['session' => $session]]),
+        $data = json_decode(
+            $this->request('DocumentGetCurrentId', [
+                    'Document' => [
+                        'session' => $session
+                    ]
+                ]
+            ),
             true);
 
-        $uid = !empty($cart['Document']['uid']) ? $cart['Document']['uid'] : null;
+        $uid = !empty($data['Document']['uid']) ? $data['Document']['uid'] : null;
+        $this->log('DEBUG', 'ID is ' . $uid);
 
         if (empty($uid)) {
             $this->invalidateCache($session);
@@ -113,7 +125,7 @@ class ModxCart extends ModxOptions
     public function insert(): ?array
     {
         if (empty($this->getID())) {
-            $this->log('ERROR insert() document ID empty', LOG_ERR);
+            $this->log('CRITICAL', 'insert() document ID empty');
             return null;
         }
 
@@ -141,7 +153,7 @@ class ModxCart extends ModxOptions
     public function update(): ?array
     {
         if (empty($this->getID())) {
-            $this->log('ERROR update() document ID empty', LOG_ERR);
+            $this->log('CRITICAL', 'update() document ID empty');
             return null;
         }
 
@@ -153,13 +165,15 @@ class ModxCart extends ModxOptions
         );
 
         if (empty($spec['uid']) || empty($spec['specid'])) {
-            $this->log('ERROR update() spec ID empty', LOG_ERR);
+            $this->log('CRITICAL', 'update() spec ID empty');
             return null;
         }
 
         $ret = json_decode(
             $this->request(
-                'DocumentSpecUpdate', ['Document' => $spec]
+                'DocumentSpecUpdate', [
+                    'Document' => $spec
+                ]
             ),
             true);
 
@@ -177,7 +191,7 @@ class ModxCart extends ModxOptions
     public function delete(): ?array
     {
         if (empty($this->getID())) {
-            $this->log('ERROR delete() document ID empty', LOG_ERR);
+            $this->log('CRITICAL', 'delete() document ID empty');
             return null;
         }
 
@@ -188,13 +202,15 @@ class ModxCart extends ModxOptions
         );
 
         if (empty($spec['specid']) || empty($spec['uid']) || empty($spec['useruid'])) {
-            $this->log('ERROR delete() specid, userid empty', LOG_ERR);
+            $this->log('CRITICAL', 'delete() specid, userid empty');
             return null;
         }
 
         $ret = json_decode(
             $this->request(
-                'DocumentSpecDelete', ['Document' => $spec]
+                'DocumentSpecDelete', [
+                    'Document' => $spec
+                ]
             ),
             true);
 
@@ -213,7 +229,7 @@ class ModxCart extends ModxOptions
     public function notifyPayment(array $info): ?array
     {
         if (empty($this->getID())) {
-            $this->log('ERROR sngn() document ID empty', LOG_ERR);
+            $this->log('CRITICAL', 'nofifyPayment() document ID empty');
             return null;
         }
 

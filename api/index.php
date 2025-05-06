@@ -12,56 +12,36 @@ use Comba\Bundle\Modx\ModxResource;
 use Comba\Bundle\Modx\ModxProduct;
 use Comba\Core\Entity;
 use Comba\Core\Logs;
-
-ini_set('display_errors', 0); // Заборонити вивід помилок на екран
-error_reporting(E_ALL);
+use Comba\Core\RateLimiter;
 
 require_once '../vendor/autoload.php';
 
-$isAuth = false;
+$ip = (new RemoteIP)->get_ip_address();
 $lg = new Logs('api');
-$lg->setExtendedData((new RemoteIP)->get_ip_address());
+$lg->setGlobalContext(['ip' =>$ip]);
 $headers = getallheaders();
 
-// Перевірка наявності  Authorization
-if (isset($headers['Authorization'])) {
-    $authHeader = htmlspecialchars(strip_tags($headers['Authorization']));
-    $token = str_replace('Bearer ', '', $authHeader);
-    if (preg_match('/^[A-Za-z0-9]{20,32}$/', $token)) {
-        if ($token) {
+$rateLimiter = new RateLimiter();
 
-            $memcached = new Memcached();
-            $memcached->addServer('localhost', 11211);
-            $maxAttempts = 5;
-            $attemptsKey = md5($token);
-
-            // Перевірка токена серед дозволених до авторизації
-            if (in_array($token, array_keys(Entity::get3thAuth('RequestApi','marketplace')))) {
-                $isAuth = true;
-                $memcached->delete($attemptsKey);
-            } else {
-                $attempts = (int) $memcached->get($attemptsKey); // Отримуємо кількість спроб з Memcached
-
-                if ($attempts >= $maxAttempts) {
-                    $lg->save("Забагато невдалих спроб авторизації з токеном $token.");
-                    // http_response_code(429); // Відповідь "Забагато запитів" (HTTP 429)
-                    exit;
-                }
-
-                $attempts++;
-                $memcached->set($attemptsKey, $attempts, 3600); // Зберігаємо кількість спроб на 1 годину
-                $lg->save("Токен $token не знайдено.");
-            }
-        }
-    } else {
-        $lg->save("Токен $token не знайдено.");
-    }
-} else {
-    $lg->save("Заголовок Authorization не знайдено.");
+if ($rateLimiter->isBlocked($ip)) {
+    $rateLimiter->handleBlock("Забагато спроб API авторизації", 429, "Забагато спроб API авторизації IP $ip");
 }
 
-if (!$isAuth) {
-    return '';
+if (!isset($headers['Authorization'])) {
+    $rateLimiter->registerStatusAttempt($ip, false)
+        ->handleError("Authorization wrong", null, "Заголовок Authorization не знайдено, IP $ip.");
+}
+
+$authHeader = $headers['Authorization'];
+$token = str_replace('Bearer ', '', $authHeader);
+if (!preg_match('/^[A-Za-z0-9]{20,32}$/', $token)) {
+    $rateLimiter->registerStatusAttempt($ip, false)
+        ->handleError("Invalid token", null, "Токен має невірний формат");
+}
+
+if (!in_array($token, array_keys(Entity::get3thAuth('RequestApi', 'marketplace')))) {
+    $rateLimiter->registerStatusAttempt($ip, false)
+        ->handleError("Token not found", '401 Unauthorized', "Токен $token не знайдено.");
 }
 
 $ret = null;
@@ -70,10 +50,11 @@ $data = json_decode(file_get_contents('php://input'), true);
 if (!empty($data)) {
 
     $callme = htmlspecialchars($data['calledMethod']);
-    $lg->save('api method ' . $callme);
-    $lg->save(json_encode($data['methodProperties']));
+    $lg->log('INFO', 'api method ' . $callme);
+    $lg->log('INFO', json_encode($data['methodProperties']));
+
     if (empty($callme)) {
-        $lg->save('{"result":"wrong method"}');
+        $lg->log('ERROR','{"result":"wrong method"}');
         exit;
     }
 
@@ -83,27 +64,27 @@ if (!empty($data)) {
     if (empty($modx->config)) $modx->getSettings();
 
     if ('ProductList' == $callme) {
-        $doc = new ModxProduct($modx);
+        $doc = new ModxProduct(null, $modx);
         $ret = json_encode(['Document' => $doc->getPageInfo($data['methodProperties'])], JSON_UNESCAPED_UNICODE);
     }
     if ('ProductActivate' == $callme) {
-        $doc = new ModxProduct($modx);
+        $doc = new ModxProduct(null, $modx);
         $_result = $doc->setAvailable($data['methodProperties']);
         if ($_result == 'ok') {
-            (new CombaHelper($modx))->updateReferenceProduct($data['methodProperties']['Document']['contentid']);
+            (new CombaHelper(null, $modx))->updateReferenceProduct($data['methodProperties']['Document']['contentid']);
         }
         $ret = json_encode(['Document' => ['result' => $_result]], JSON_UNESCAPED_UNICODE);
     }
     if ('ProductDeactivate' == $callme) {
-        $doc = new ModxProduct($modx);
+        $doc = new ModxProduct(null, $modx);
         $_result = $doc->setAvailable($data['methodProperties'], 0);
         if ($_result == 'ok') {
-            (new CombaHelper($modx))->updateReferenceProduct($data['methodProperties']['Document']['contentid']);
+            (new CombaHelper(null, $modx))->updateReferenceProduct($data['methodProperties']['Document']['contentid']);
         }
         $ret = json_encode(['Document' => ['result' => $_result]], JSON_UNESCAPED_UNICODE);
     }
     if ('ProductUpdateImages' == $callme) {
-        $doc = new ModxProduct($modx);
+        $doc = new ModxProduct(null, $modx);
         $doc->prepareImages($data['methodProperties']);
         $ret = json_encode(['Document' => ['result' => 'ok']]);
     }

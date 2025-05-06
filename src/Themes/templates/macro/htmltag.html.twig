@@ -1,7 +1,7 @@
 ﻿{% macro linktracking(context, args) %}
 {% apply spaceless %}
-    {% if context.language %}
-        {% set l = context.language ~ '/' %}
+    {% if context.page.language %}
+        {% set l = context.page.language ~ '/' %}
     {% endif %}
     {% if args.onlylink %}
         {{ context.marketplace.site }}/{{ l }}{% if context.doc.shortUID %}t?{{ context.doc.shortUID }}{% else %}t?{{ context.doc.doc_uid }}{% endif %}
@@ -18,8 +18,8 @@
 
 {% macro linkinvoice(context, args) %}
 {% apply spaceless %}
-    {% if context.language %}
-        {% set l = context.language ~ '/' %}
+    {% if context.page.language %}
+        {% set l = context.page.language ~ '/' %}
     {% endif %}
     {% if args.onlylink %}
         {{ context.marketplace.site }}/{{ l }}{% if context.doc.shortUID %}p?{{ context.doc.shortUID }}{% else %}p?{{ context.doc.doc_uid }}{% endif %}

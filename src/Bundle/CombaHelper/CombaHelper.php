@@ -11,14 +11,15 @@ use Comba\Bundle\Modx\Tpl\ModxOperTpl;
 use Comba\Core\Entity;
 use Comba\Core\Options;
 use Comba\Core\Parser;
-use RemoteIP;
 
+use DocumentParser;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport\SendmailTransport;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
+use Symfony\Component\Mime\Exception\RfcComplianceException;
 use function Comba\Functions\array_search_by_key;
 use function Comba\Functions\safeHTML;
 use function ctype_alpha;
@@ -27,22 +28,13 @@ use const MODX_BASE_PATH;
 
 class CombaHelper extends ModxOptions
 {
-    public string $templatExtension = '.html.twig';
-    public string $templatesPath;
     private ModxUser $_user;
 
-    public function __construct($modx)
+    public function __construct(?object $parent = null, ?DocumentParser $modx = null)
     {
-        parent::__construct($modx);
-        $this->setTemplatesPath(str_replace(getenv('DOCUMENT_ROOT'), '', dirname(__FILE__)) . '/templates/');
+        parent::__construct($parent, $modx);
 
-        $this->_user = new ModxUser($this->getModx());
-        $this->_user->setLogLevel($this->getLogLevel());
-    }
-
-    public function setTemplatesPath(string $path)
-    {
-        $this->templatesPath = $path;
+        $this->_user = new ModxUser($this);
     }
 
     /** Call to reCaptcha and get check response array, has 'confirm' for bool
@@ -52,7 +44,7 @@ class CombaHelper extends ModxOptions
      */
     public function captcha(string $token): array
     {
-        $auth = Entity::get3thAuth('reCaptcha','marketplace');
+        $auth = Entity::get3thAuth('reCaptcha', 'marketplace');
         if (empty($auth['secret']) || empty($auth['url'])) {
             return ['error-codes' => 'missing-input-secret'];
         }
@@ -81,7 +73,7 @@ class CombaHelper extends ModxOptions
         return $response;
     }
 
-    /** оформлення замовлення на сервері
+    /** Оформлення замовлення на сервері
      * повертає перелік UID замовлень або помиллку
      */
     public function checkOut()
@@ -91,7 +83,7 @@ class CombaHelper extends ModxOptions
         }
 
         return json_decode($this->request('DocumentCheckout',
-            array(
+            [
                 'Document' => [
                     'uid' => $this->getUID(),
                     'doc_client_name' => $this->getOptions('doc_client_name'),
@@ -107,7 +99,7 @@ class CombaHelper extends ModxOptions
                     'doc_client_usebonus' => $this->IsSign($this->getOptions('doc_client_usebonus')),
                     'doc_muser' => $this->User()->getId(),
                 ]
-            )
+            ]
         ), true);
     }
 
@@ -118,7 +110,7 @@ class CombaHelper extends ModxOptions
      */
     public function getUID(): ?string
     {
-        return (new ModxCart($this->getModx()))->getID();
+        return (new ModxCart($this))->getID();
     }
 
     /**
@@ -153,13 +145,16 @@ class CombaHelper extends ModxOptions
         }
 
         $modxObject = $this->getModx()->getDocumentObject('id', $contentid, 'all');
-        $product = (new ModxProduct())->obtainFromModxObject($modxObject)->get();
-        if (empty($product)) return;
+        $product = (new ModxProduct($this))->obtainFromModxObject($modxObject)->get();
+
+        if (empty($product)) {
+            return;
+        }
 
         $this->request('ProductUpdateCartSpecUpdateSum',
-            array(
+            [
                 'Product' => $product
-            )
+            ]
         );
     }
 
@@ -183,20 +178,20 @@ class CombaHelper extends ModxOptions
         $tpl = $this->getOptions('tpl');
         $toEmail = $this->getOptions('toEmail');
 
-        $dataset = (new ModxCart($this->getModx()))
+        $dataset = (new ModxCart($this))
             ->setOptions('id', $this->getOptions('id'))
             ->get();
 
         if (empty($dataset)) {
-            $this->log('ERROR: empty dataset (' . $uid . ')', LOG_ERR);
+            $this->log('CRITICAL', 'ERROR: empty dataset (' . $uid . ')');
             return 'result_error';
         }
 
-        $marketplace = (new ModxMarketplace())->get();
+        $marketplace = (new ModxMarketplace($this))->get();
 
         $marketplace_label = array_search_by_key($marketplace, 'label');
 
-        $aTpl = (new ModxOperTpl(new Parser()))
+        $aTpl = (new ModxOperTpl())
             ->setModx($this->getModx())
             ->initLang()
             ->setOptions('tpl', $tpl)
@@ -205,7 +200,7 @@ class CombaHelper extends ModxOptions
         $body = $aTpl->render($dataset);
 
         if (empty($body)) {
-            $this->log('ERROR: empty body (' . $tpl . ')', LOG_ERR);
+            $this->log('CRITICAL', 'ERROR: empty body (' . $tpl . ')');
             return 'result_error';
         }
 
@@ -226,19 +221,27 @@ class CombaHelper extends ModxOptions
         foreach ($arEmail as $email) {
             if (!empty($email) && strlen($email) > 5) {
 
-                $sm = (new Email())
-                    ->from(new Address(array_search_by_key($marketplace, 'email'), $marketplace_label))
-                    ->to($email)
-                    ->subject($subj)
-                    ->html($body);
+                $from = array_search_by_key($marketplace, 'email');
+                if (empty($from)){
+                    continue;
+                }
 
-                $isSent = true;
-                $transport = new SendmailTransport();
                 try {
+                    $sm = (new Email())
+                        ->from(new Address($from, $marketplace_label))
+                        ->to($email)
+                        ->subject($subj)
+                        ->html($body);
+
+                    $isSent = true;
+                    $transport = new SendmailTransport();
                     (new Mailer($transport))->send($sm);
                 } catch (TransportExceptionInterface $e) {
                     $isSent = false;
-                    $this->log($e->getMessage(), LOG_ERR);
+                    $this->log('ERROR', $e->getMessage());
+                } catch (RfcComplianceException $e){
+                    $isSent = false;
+                    $this->log('ERROR', $e->getMessage());
                 }
 
                 if ($isSent && !empty($this->getOptions('bnoty'))) {
@@ -275,7 +278,7 @@ class CombaHelper extends ModxOptions
         }
 
         return $this->ca->request('NotifyInsert',
-            array(
+            [
                 'Document' => [
                     'uid' => $ntf->getOptions('uid'),
                     'body' => $ntf->getOptions('body'),
@@ -287,7 +290,7 @@ class CombaHelper extends ModxOptions
                     'user_name' => $ntf->getOptions('user_name'),
                     '__byName' => $ntf->getOptions('__byName'),
                 ]
-            )
+            ]
         );
     }
 
@@ -298,7 +301,7 @@ class CombaHelper extends ModxOptions
     public function getCheckoutTnx()
     {
         if (isset($_SESSION['ACTVT'])) {
-            if (time() - $_SESSION['ACTVT'] > Entity::PAGE_TNX_TIMEOUT) {
+            if (time() - $_SESSION['ACTVT'] > Entity::get('PAGE_TNX_TIMEOUT')) {
                 unset($_SESSION['showtnx']);
                 unset($_SESSION['ACTVT']);
             } else {
@@ -324,97 +327,39 @@ class CombaHelper extends ModxOptions
         $userenv = $this->getIpAddr();
         $userenv .= " " . htmlspecialchars($this->getAgent());
 
-        $this->log('create document', LOG_NOTICE);
+        $this->log('INFO', 'request DocumentNew');
         $_tmp = $this->ca->request('DocumentNew',
-            array(
+            [
                 'Document' => [
                     'session' => $this->User()->getSession(),
                     'useruid' => $this->User()->getId(),
                     'username' => $this->User()->getName(),
-                    'marketplace' => (new ModxMarketplace())->getUID(),
+                    'marketplace' => (new ModxMarketplace($this))->getUID(),
                     'userenv' => $userenv
                 ]
-            ));
+            ]
+        );
 
         $cart = json_decode($_tmp, true);
-        return !empty($cart['Document']['uid']) ? $cart['Document']['uid'] : false;
-    }
+        if (!empty($cart['Document']['uid'])) {
+            $this->log('INFO', 'created document ' . $cart['Document']['uid']);
+            return $cart['Document']['uid'];
+        } else {
+            $this->log('CRITICAL', 'DocumentNew return empty');
+        }
 
-    public function getIpAddr(): string
-    {
-        $ip = (new RemoteIP())->get_ip_address();
-        return empty($ip) || strlen($ip) < 8 ?? 'no-ip';
+        return false;
     }
 
     /**
      * Set timeout and UIDs for Checkout Thanx page
-     * @param $uid ids of created order
+     * @param $uid
      * @return void
      */
     public function setCheckoutTnx($uid)
     {
         $_SESSION['showtnx'] = $uid;
         $_SESSION['ACTVT'] = time();
-    }
-
-    /**
-     * Шукає та повертає evo|modx чанк
-     * для підтримки старого коду
-     */
-    public function getChunk($tpl, $bRecurse = false)
-    {
-        $template = $tpl;
-        if (substr($tpl, 0, 6) == '@FILE:') {
-            $tpl = $this->prepareFilename($tpl);
-
-            $_tpl_file = MODX_BASE_PATH . substr($tpl, 6);
-
-//            $path_parts = pathinfo($tpl);
-//            $dir = realpath($path_parts['dirname']);
-//            if ($dir === false){
-//                // fix for symlink path
-//                $_tpl_file =  substr($tpl, 6);
-//            }
-
-            if (file_exists($_tpl_file)) {
-                $template = file_get_contents($_tpl_file);
-            }
-
-            preg_match("!<include>(.*?)</include>!si", $template, $inc);
-            if ($inc) {
-                foreach ($inc as $el) {
-                    $str = $this->getChunk($el, true);
-                    $template = str_replace('<include>' . $el . '</include>', $str, $template);
-                }
-            }
-        }
-        if (!$bRecurse) {
-            $template = '@CODE:' . $template;
-        }
-        return $template;
-    }
-
-    /** Повертає ім'я файлу враховуючи префікс мови в uri
-     * @param string $tpl
-     * @return string|void
-     */
-    public function prepareFilename(string $tpl)
-    {
-        if (empty($tpl)) {
-            return;
-        }
-
-        if (substr($tpl, 6, 1) === '/') {
-            $tpl = str_replace('/', $this->templatesPath, $tpl);
-        }
-        $lang = $this->detectLanguage();
-        if (!empty($lang) && ctype_alpha($lang)) {
-            $_tpl = $tpl . '_' . $lang;
-            if (file_exists(substr($_tpl . $this->templatExtension, 6))) {
-                $tpl = $_tpl;
-            }
-        }
-        return $tpl . $this->templatExtension;
     }
 
 }

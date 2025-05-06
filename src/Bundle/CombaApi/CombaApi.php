@@ -25,9 +25,7 @@ class CombaApi
     public function __construct()
     {
         $auth = Entity::get3thAuth('Comba', 'marketplace');
-        if (!empty($auth)) {
-            $this->setUrl($auth['url'])->setKey($auth['key']);
-        }
+        $this->setUrl($auth['url'] ?? null)->setKey($auth['key'] ?? null);
     }
 
     public function request(string $method, $params = null, string $httpMethod = 'POST')
@@ -39,10 +37,10 @@ class CombaApi
         ];
 
         // запит до локального "сервера"
-        if (array_search_by_key(Entity::getData('BUILDIN_SERVER'), 'enabled') == true) {
+        if (array_search_by_key(Entity::getData('SERVER'), 'mode') == 'standalone') {
             define('AUTHPASS', true);
             $_externaldata = json_encode($data);
-            require dirname(__FILE__, 2) . '/BuildInServer/build-in_server.php';
+            require dirname(__FILE__, 2) . '/Standalone/index.php';
             return $this->prepare($ret);
         }
 
@@ -61,7 +59,7 @@ class CombaApi
 
         $url = $this->getUrl();
         $headers = [
-            'User-Agent' => 'Comba Modx (' . Entity::getServerName() . ')',
+            'User-Agent' => 'Comba Modx (' . Entity::get('SERVER_NAME') . ')',
             'Authorization' => 'Bearer ' . $this->getKey(),
             'Content-Type' => 'application/json;charset=utf8'
         ];
@@ -85,16 +83,15 @@ class CombaApi
             $response = $httpClient->sendRequest($request);
             return $this->prepare($response->getBody()->getContents());
         } catch (ClientExceptionInterface $e) {
-            $lg = new Logs();
-            $lg->save('HTTP Request Error: ' . $e->getMessage());
+            (new Logs())->log('ERROR', 'HTTP Request Error: ' . $e->getMessage());
             return null;
         }
     }
 
     public function getIpAddr(): ?string
     {
-        $curip = (new RemoteIP())->get_ip_address();
-        return (empty($curip) && strlen($curip) < 8) ? 'no-ip' : $curip;
+        $ip = (new RemoteIP())->get_ip_address();
+        return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : '0.0.0.0';
     }
 
     private function prepare($data)

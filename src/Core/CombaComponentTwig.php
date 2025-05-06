@@ -20,7 +20,7 @@ class CombaComponentTwig
                     }
 
                     $_tempclass = $extname = "CC_" . basename($file, ".php");
-                    require_once($path . $file);
+                    require_once $path . $file;
 
                     if (class_exists($_tempclass)) {
                         // Визначаємо батьківський клас

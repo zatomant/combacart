@@ -1,0 +1,63 @@
+<style>
+    @media print {
+    {{ include ('print/print.css') }}
+    }
+</style>
+<div class="row g-0 mx-3 row-print">
+    <div class="col">
+        <div class="row g-0">
+            <div class="col-12 col-sm-6">
+                <b>Замовник:</b>
+                {{ doc.doc_delivery_client_name }}<br>{{ doc.doc_delivery_client_phone|formatphone }}
+                <br>{{ doc.doc_client_address }}
+            </div>
+            <div class="col-12 col-sm-6">
+                <b>Постачальник:</b>
+                {{ doc.seller.label }}
+                <br>{{ doc.payee.value }}
+                <br>{{ doc.payee.okpo }}
+            </div>
+        </div>
+    </div>
+    <div class="col-auto">
+        <div class="row g-0">
+            <div class="col">
+                {{ formatBarcode({'t':'QRCODE','s':'https://' ~ marketplace.site ~ '/t?' ~ doc.doc_uid,'c':'yellow','bg':'blue'}) | raw }}
+            </div>
+        </div>
+    </div>
+</div>
+<p></p>
+<div class="row mx-3">
+    <div class="col-12">
+        <h5 class="text-center font-weight-bold">Видатковий чек № {{ doc.doc_number }} від {{ doc.doc_create_date|date("d.m.Y") }}</h5>
+    </div>
+    <div class="col-12">
+        <table id="docspectable{{ doc.doc_number }}" name="docspectable{{ doc.doc_number }}" class="table table-sm table-bordered table-condensed">
+            <thead>
+            <tr>
+                <th></th>
+                <th>Артикул</th>
+                <th>Назва</th>
+                <th>К-сть</th>
+                <th>Ціна</th>
+                <th>Сума</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{ include('invoicespecs_print.html.twig')|clearEOF |raw }}
+            <tr>
+                <td colspan="4"></td>
+                <td class="fw-bold">Всього на суму:</td>
+                <td class="fw-bold">{{ doc.doc_sum|number_format(2) }}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-6 p-4">
+        Від постачальника ___________________________
+    </div>
+    <div class="col-6 p-4">
+        Отримав _____________________________
+    </div>
+</div>

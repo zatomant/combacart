@@ -14,6 +14,10 @@
 
 use Comba\Core\Entity;
 
+if (!defined('MODX_BASE_PATH')) {
+    die('What are you doing? Get out of here!');
+}
+
 if (empty($options)) {
     return '';
 }
@@ -39,7 +43,7 @@ if ($_item = $presets[$options] ?? null) {
 
 $id = $modx->documentObject['id'];
 $modxobject = $modx->getDocumentObject('id', $id, true);
-$_images = json_decode($modxobject[Entity::TV_GOODS_IMAGES][1], true);
+$_images = json_decode($modxobject[Entity::get('TV_GOODS_IMAGES')][1], true);
 foreach ($_images['fieldValue'] as $item) {
     if (isset($item['image'])) {
         $img = $item['image'];
@@ -78,10 +82,10 @@ $preset .= $ratio_sfx;
 $force = 1;
 
 return $modx->runSnippet('GetImage',
-    array(
+    [
         //'id' => $id,
         'imgsrc' => $img ?? null,
         'options' => $preset,
         'force' => !empty($force) ? 1 : 0
-    )
+    ]
 );

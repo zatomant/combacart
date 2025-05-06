@@ -2,6 +2,8 @@
 
 namespace Comba\Core;
 
+use Psr\Log\LoggerInterface;
+use RemoteIP;
 use function Comba\Functions\sanitizeID;
 
 /**
@@ -10,21 +12,76 @@ use function Comba\Functions\sanitizeID;
 class Options
 {
     public array $lang;
-
-    private array $_options = array();
-    private bool $_debug = false;
+    protected ?LoggerInterface $logger = null;
+    private array $_options = [];
+    private int $_log_level = LOG_ERR;
 
     /**
      * __construct
      *
-     * @param string|int $id Primary key
+     * @param string|null $id Primary key
      *
      * @return void
      */
-    public function __construct($id = null)
+    public function __construct(?object $parent = null, ?string $id = null)
     {
-        if (!empty($id)) {
+
+        $this->logger = new Logs(get_class($this));
+        $this->logger->setLogLevel($parent ? $parent->getLogLevel() : $this->_log_level);
+
+        if (!empty($id) && !is_object($id) && (!is_string($id) || !class_exists($id))) {
             $this->setOptions('id', $id);
+        }
+    }
+
+    /**
+     * Set class for logging
+     *
+     * @param string $class
+     * @param string $filename
+     * @return $this
+     */
+    public function setLogger(LoggerInterface $logger, string $filename): Options
+    {
+        $this->logger = $logger;
+        if ($logger instanceof Logs) {
+            $logger->setLogLevel($this->getLogLevel());
+        }
+        return $this;
+    }
+
+    /**
+     * instanceof log class
+     *
+     */
+    public function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
+    public function getLogLevel(): int
+    {
+        return $this->_log_level;
+    }
+
+    /**
+     * Встановити тип даних для запису в лог
+     * @param int $level LOG_DEBUG, LOG_ERR, LOG_INFO
+     * @return $this
+     */
+    public function setLogLevel(int $level): Options
+    {
+        $this->_log_level = $level;
+        if ($this->logger instanceof Logs) {
+            $this->logger->setLogLevel($this->_log_level);
+        }
+        return $this;
+    }
+
+    public function setLogFilename(?string $filename)
+    {
+        if (!empty($filename) && $this->logger instanceof Logs) {
+            $this->logger->setFilename($filename);
         }
     }
 
@@ -33,12 +90,13 @@ class Options
      */
     public function initLang(): Options
     {
-        $language = Entity::LANGUAGE;
+        $language = Entity::get('LANGUAGE');
 
         $language_file = dirname(__FILE__, 3) . '/assets/lang/' . $language . '.php';
+
         if (file_exists($language_file)) {
 
-            // мова за-замовчуванням
+            // мова за замовчуванням
             $this->lang = include($language_file);
 
             // визначаемо мову "кліента"
@@ -78,9 +136,7 @@ class Options
      */
     public function getOptions($param, string $default = null)
     {
-        if ($this->_debug) {
-            (new Logs())->save('get ' . $param . '->' . $this->_options[$param]);
-        }
+        $this->log('DEBUG', 'get ' . $param . '->' . $this->_options[$param]);
         return $this->isExists($param) ? $this->_options[$param] : $default;
     }
 
@@ -105,19 +161,61 @@ class Options
 
             if (is_array($value)) {
                 $this->_options[$param] = $value;
-                if ($this->_debug) {
-                    (new Logs())->save('set ' . $param . '->' . implode(';', $value));
-                }
+                $this->log('DEBUG', 'set ' . $param . '->' . implode(';', $value));
             } else {
                 if (isset($value)) {
-                    if ($this->_debug) {
-                        (new Logs())->save('set ' . $param . '->' . $value);
-                    }
+                    $this->log('DEBUG', 'set ' . $param . '->' . serialize($value));
                     $this->_options[$param] = $value;
                 }
             }
         }
         return $this;
+    }
+
+    /**
+     * Запис в лог за PSR-3
+     *
+     * @param $level
+     * @param string|array $message
+     * @param array $context
+     * @return void
+     */
+    public function log($level, $message, array $context = []): void
+    {
+        if (!$this->logger) {
+            return;
+        }
+
+        $_clsfnc = '';
+        if ($this->logger instanceof Logs) {
+            $level = is_int($level) ? $level : $this->logger->mapPsrToSyslog($level);
+            $this->logger->setLogLevel($this->getLogLevel());
+        } else {
+            $level = isset($level) || is_string($level) ? $level : 'INFO';
+        }
+
+        if ($level == LOG_DEBUG || $level == 'DEBUG') {
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+
+            if (isset($backtrace[1])) {
+                if (isset($backtrace[1]['class'])) {
+                    $_clsfnc .= $backtrace[1]['class'] . $backtrace[1]['type'];
+                }
+                $_clsfnc .= $backtrace[1]['function'] . "()";
+            }
+        }
+
+        if ($this->logger instanceof Logs) {
+
+            $this->logger->put($_clsfnc, $level);
+            $this->logger->put($message, $level, $context);
+
+        } else {
+
+            $this->logger->log($level, $_clsfnc);
+            $this->logger->log($level, (string)$message, $context);
+
+        }
     }
 
     /**
@@ -146,6 +244,12 @@ class Options
     public function getLastError()
     {
         return $this->getOptions('lasterror', false);
+    }
+
+    public function getIpAddr(): string
+    {
+        $ip = (new RemoteIP())->get_ip_address();
+        return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : '0.0.0.0';
     }
 
     /**

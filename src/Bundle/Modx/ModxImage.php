@@ -4,10 +4,12 @@ namespace Comba\Bundle\Modx;
 
 use claviska\SimpleImage;
 use Comba\Core\Entity;
+use Comba\Core\Logs;
+use DocumentParser;
 
 class ModxImage
 {
-    private $_modx;
+    private DocumentParser $_modx;
 
     private array $ratio_default = array(
         'img16x9' => 'far=C',
@@ -18,12 +20,20 @@ class ModxImage
 
     private array $presets;
 
-    public function __construct($modx = null)
+    public function __construct(?DocumentParser $modx = null)
     {
         $this->presets = Entity::getData('Imagepresets');
         $this->setModx($modx);
     }
 
+    /**
+     * getImage без аргументів повертає шлях до кешованого файлу
+     * аргументи:
+     * &oper=`src`- повернути оригінальне ім'я файлу зображення
+     * &webp=`1` використовувати webp для зображень
+     * &filemtime=`1` перевіряти файловий час у файлі md5-кешу
+     * &force=`1` перезаписати вихідне зображення (видалити та створити нове) в кеші
+     **/
     public function getImage(array $args): string
     {
         extract($args);
@@ -50,7 +60,7 @@ class ModxImage
 
                 $imgs = $this->getModx()->runSnippet('multiTV', [
                         'docid' => $id,
-                        'tvName' => Entity::TV_GOODS_IMAGES,
+                        'tvName' => Entity::get('TV_GOODS_IMAGES'),
                         'tplConfig' => '',
                         'outerTpl' => '@CODE:((wrapper))',
                         'rowTpl' => '@CODE:((image1));'
@@ -59,10 +69,10 @@ class ModxImage
 
                 if (empty($imgs)) {
                     // якщо немає multiTV
-                     $modxobject = $this->getModx()->getDocumentObject('id', $id, 'all');
-                     if (!empty($modxobject[Entity::TV_GOODS_IMAGES][1])) {
-                         $imgs = $modxobject[Entity::TV_GOODS_IMAGES][1];
-                     }
+                    $modxobject = $this->getModx()->getDocumentObject('id', $id, 'all');
+                    if (!empty($modxobject[Entity::get('TV_GOODS_IMAGES')][1])) {
+                        $imgs = $modxobject[Entity::get('TV_GOODS_IMAGES')][1];
+                    }
                 }
 
                 $imgs = explode(';', $imgs);
@@ -77,7 +87,7 @@ class ModxImage
         if (!empty($id)) {
             // get ratio
             $modxobject = $this->getModx()->getDocumentObject('id', $id, true);
-            $_images = json_decode($modxobject[Entity::TV_GOODS_IMAGES][1], true);
+            $_images = json_decode($modxobject[Entity::get('TV_GOODS_IMAGES')][1], true);
 
             foreach ($_images['fieldValue'] as $item) {
 
@@ -105,7 +115,7 @@ class ModxImage
             }
         }
 
-        $site = filter_var(Entity::getServerName(), FILTER_SANITIZE_URL);
+        $site = filter_var(Entity::get('SERVER_NAME'), FILTER_SANITIZE_URL);
         $options = str_replace('watermark', 'wmt|' . $site . '|20|*|f0f0f0|ApeMount-WyPM9.ttf|70', $options);
 
         $text = [
@@ -134,12 +144,12 @@ class ModxImage
         return $out;
     }
 
-    public function getModx()
+    public function getModx(): DocumentParser
     {
         return $this->_modx;
     }
 
-    public function setModx($modx): ModxImage
+    public function setModx(DocumentParser $modx): ModxImage
     {
         $this->_modx = $modx;
         return $this;
@@ -301,7 +311,9 @@ class ModxImage
                     }
                 }
             } else {
-                $this->getModx()->logEvent(0, 3, implode('<br/>', $phpThumb->debugmessages), 'phpthumb');
+                $lg = new Logs();
+                $lg->log('ERROR', 'phpThumb->GenerateThumbnail()\n');
+                $lg->log('ERROR', json_encode($phpThumb->debugmessages));
             }
         }
 
@@ -310,7 +322,7 @@ class ModxImage
         if (isset($webp)) {
             if (!file_exists($outputFilename . '.webp')) {
                 $outputFilenameWebp = $outputFilename . '.webp';
-                exec('cwebp -q 80 "'.$outputFilename.'" -o "'.$outputFilenameWebp.'"');
+                exec('cwebp -q 80 "' . $outputFilename . '" -o "' . $outputFilenameWebp . '"');
             }
             $fNameSuf .= '.webp';
         }

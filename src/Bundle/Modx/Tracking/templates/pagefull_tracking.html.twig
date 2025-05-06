@@ -1,0 +1,219 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+{% extends "pagefull.html.twig" %}
+{% set signs = doc.signs|column('type') %}
+{% block status %}
+    <h4>{{ lang.request }}: {{ doc.doc_number }}</h4>
+    <article class="card bgg">
+        <div class="card-body row">
+            <div class="col-sm mb-2">
+                <strong>{{ lang.created }}:</strong><br>{{ doc.doc_date_create|date("d.m.Y H:i") }}
+            </div>
+            <div class="col-sm mb-2">
+                <strong>{{ lang.payment_type }}:</strong>
+                <br>{{ lang[doc.doc_payment] }}
+
+                {% if signs|filter(v => v == 2) and doc.doc_paysum > 0 and not signs|filter(v => v in [4,5,6]) %}
+                    <br><a class="btn btn-sm btn-success" href="{{ macros.linkinvoice(_context,{onlylink:true})|spaceless }}">{{ lang.action_pay }}</a>
+                {% endif %}
+            </div>
+
+            {% if doc.doc_delivery != 'dt_pickup' %}
+
+                <div class="col-sm mb-2">
+                    <strong>{{ lang.delivery_type }}:</strong><br>{{ lang[doc.doc_delivery] }}
+                </div>
+
+                {% if doc.doc_delivery_number and signs|filter(v => v == 3) %}
+                    <div class="col-sm mb-2"><strong>{{ lang.status }}:</strong> <br> {{ lang['status_' ~ doc.doc_status] }}</div>
+                    <div class="col-sm mb-2"><strong>{{ lang.delivery_number }}:</strong> <br> {{ doc.doc_delivery_number }} </div>
+
+                {% else %}
+
+                    {% if signs|filter(v => v == 2) %} {# allow payment #}
+                        {% if signs|filter(v => v == 6) %}
+                            <div class="col-sm">
+                                <strong>{{ lang.status_6 }}:</strong> <br> {{ doc.signs|filter(item => item.type == 6)|first.date|date("d.m.Y") }}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if signs|filter(v => v == 9) %}
+                        <div class="col-sm mb-2">
+                            <strong>{{ lang.status_9 }}:</strong> <br> {{ doc.signs|filter(item => item.type == 9)|first.date|date("d.m.Y") }}
+                        </div>
+                    {% endif %}
+
+                    <div class="col-sm mb-2">
+                        <strong>{{ lang.status }}:</strong>
+                        <br>{{ lang['status_' ~ doc.doc_status] }}
+                    </div>
+
+                {% endif %}
+
+            {% else %}
+                {% if lang['status_' ~ doc.doc_status] %}
+                    <div class="col-sm"><strong>{{ lang.status }}:</strong><br>{{ lang['status_' ~ doc.doc_status] }}</div>
+                {% endif %}
+                {% if signs|filter(v => v == 8) %}
+                    <div class="col-sm"><strong>{{ lang.status_8 }}:</strong> {{ doc.signs|filter(item => item.type == 8)|first.date|date("d.m.Y") }}</div>
+                {% endif %}
+
+            {% endif %}
+        </div>
+    </article>
+{% endblock %}
+{% block track %}
+    <style>
+        .stepper {
+            display: flex;
+            flex-direction: column;
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .stepper-item {
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-left: 2.7rem;
+            margin-bottom: var(--bs-border-radius-xxl);
+            color: var(--bs-secondary);
+        }
+
+        .stepper-item::before {
+            content: "";
+            width: 2rem;
+            height: 2rem;
+            border: 2px solid var(--bs-secondary-border-subtle);
+            border-radius: 50%;
+            background-color: #fff;
+            position: absolute;
+            left: 0;
+        }
+
+        .stepper-item::after {
+            content: "";
+            position: absolute;
+            left: 0.9rem;
+            top: 1.7rem;
+            height: 100%;
+            width: 2px;
+            background-color: #58d945;
+        }
+
+        .stepper-item:last-child::after {
+            display: none;
+        }
+
+        .stepper-item.active {
+            color: var(--bs-body-color);
+        }
+
+        .stepper-item.active::before {
+            background-color: #58d945;
+            border: 2px solid #58d945;
+        }
+
+        .stepper-item.active + .stepper-item::after {
+            background-color: var(--bs-secondary-border-subtle);
+        }
+
+    </style>
+    <h4 class="mt-3">{{ lang.request_status_flow }}</h4>
+    <ol class="card stepper pt-5 p-3 bgg">
+
+        <li class="stepper-item  active">{{ lang.status_directly }}</li>
+
+        {% if signs|filter(v => v == 5) %}
+            <li class="stepper-item active">{{ lang.status_5 }}</li>
+        {% else %}
+
+            {% if signs|filter(v => v == 10) %}
+                <li class="stepper-item active">{{ lang.status_10 }}</li>
+            {% else %}
+                {% if signs|filter(v => v == 9) %}
+                    <li class="stepper-item active">{{ lang.status_9 }}</li>
+                {% else %}
+                    <li class="stepper-item">{{ lang.status_9 }}</li>
+                {% endif %}
+            {% endif %}
+
+            {% if doc.doc_delivery != 'dt_pickup' %}
+
+                {% if doc.doc_payment != 'pt_cod' %}
+                    {% if signs|filter(v => v == 2) %}
+                        {% if signs|filter(v => v == 6) %}
+                            <li class="stepper-item active">{{ lang.status_6 }}</li>
+                        {% else %}
+                            {% if signs|filter(v => v == 13) %}
+                                <li class="stepper-item active">{{ lang.status_13 }}</li>
+                            {% else %}
+                                <li class="stepper-item active">
+                                    <a href="{{ macros.linkinvoice(_context,{onlylink:true})|spaceless }}">{{ lang.status_waiting_for_payment }}</a>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                    {% else %}
+                        {% if signs|filter(v => v == 6) %}
+                            <li class="stepper-item active">{{ lang.status_6 }}</li>
+                        {% else %}
+                            {% if signs|filter(v => v == 13) %}
+                                <li class="stepper-item active">{{ lang.status_13 }}</li>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+
+                {% if signs|filter(v => v == 3) %}
+                    <li class="stepper-item active">{{ lang.delivery }}</li>
+                {% else %}
+                    <li class="stepper-item">{{ lang.shipping }}</li>
+                {% endif %}
+
+            {% else %}
+
+                {% if signs|filter(v => v == 8) %} {# prepared #}
+                    <li class="stepper-item active">{{ lang.status_available_for_delivery }}</li>
+                {% else %}
+                    <li class="stepper-item">{{ lang.status_available_for_delivery }}</li>
+                {% endif %}
+
+            {% endif %}
+
+            {% if signs|filter(v => v == 4) %}
+                <li class="stepper-item active">{{ lang.received }}/li>
+            {% else %}
+                <li class="stepper-item">{{ lang.received }}</li>
+            {% endif %}
+
+            {% if doc.doc_payment == 'pt_cod' %}
+                {% if signs|filter(v => v == 6) %}
+                    <li class="stepper-item active">{{ lang.status_6 }}</li>
+                {% else %}
+                    <li class="stepper-item">{{ lang.status_waiting_for_payment }}</li>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    </ol>
+{% endblock %}
+
+{% block describle %}
+    {% if doc.doc_delivery != 'dt_pickup' %}
+        {% if doc.doc_delivery_number and signs|filter(v => v == 3) %}
+            <h4>{{ lang.delivery_status }} {{ lang[doc.doc_delivery] }}</h4>
+            <article class="card bgg">
+                <div class="card-body">
+                    <div class="col">{{ doc.trackingservice|raw }}</div>
+                    <div class="col mt-4">
+                        <a href="{{ doc.trk_urltracking }}" target="_blank" class="btn {{ btnsize }} {{ btnclass }}"><i class="bi bi-box-arrow-in-right"></i> інформація з
+                            сайту {{ doc.trk_title }}</a></div>
+                </div>
+            </article>
+        {% endif %}
+    {% endif %}
+
+{% endblock %}
+
+{% block helper %}
+    {{ parent() }}
+{% endblock %}

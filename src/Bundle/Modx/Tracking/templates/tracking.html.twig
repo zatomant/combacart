@@ -1,0 +1,84 @@
+{% import "/macro/htmltag.html.twig" as macros %}
+<div class="card">
+    <div class="card-body">
+        Поточний статус: Замовлення №{{ doc.doc_number }} від {{ doc.doc_date_create|date("d.m.Y") }} - <span class="text-primary">{{ lang['status_'~doc.doc_status] }}</span>
+    </div>
+</div>
+
+{% set signs = doc.signs|column('type') %}
+<h4>{{ lang.request }}: {{ doc.doc_number }}</h4>
+<article class="card bgg">
+    <div class="card-body row">
+        <div class="col-sm mb-2">
+            <strong>{{ lang.created }}:</strong><br>{{ doc.doc_date_create|date("d.m.Y H:i") }}
+        </div>
+        <div class="col-sm mb-2">
+            <strong>{{ lang.payment_type }}:</strong>
+            <br>{{ lang[doc.doc_payment] }}
+
+            {% if signs|filter(v => v == 2) and doc.doc_paysum > 0 and not signs|filter(v => v in [4,5,6]) %}
+                <br><a class="btn btn-sm btn-success" href="{{ macros.linkinvoice(_context,{onlylink:true})|spaceless }}">{{ lang.action_pay }}</a>
+            {% endif %}
+        </div>
+
+        {% if doc.doc_delivery != 'dt_pickup' %}
+
+            <div class="col-sm mb-2">
+                <strong>{{ lang.delivery_type }}:</strong><br>{{ lang[doc.doc_delivery] }}
+            </div>
+
+            {% if doc.doc_delivery_number and signs|filter(v => v == 3) %}
+                <div class="col-sm mb-2"><strong>{{ lang.status }}:</strong> <br> {{ lang['status_' ~ doc.doc_status] }}</div>
+                <div class="col-sm mb-2"><strong>{{ lang.delivery_number }}:</strong> <br> {{ doc.doc_delivery_number }} </div>
+
+            {% else %}
+
+                {% if signs|filter(v => v == 2) %} {# allow payment #}
+                    {% if signs|filter(v => v == 6) %}
+                        <div class="col-sm">
+                            <strong>{{ lang.status_6 }}:</strong> <br> {{ doc.signs|filter(item => item.type == 6)|first.date|date("d.m.Y") }}
+                        </div>
+                    {% endif %}
+                {% endif %}
+
+                {% if signs|filter(v => v == 9) %}
+                    <div class="col-sm mb-2">
+                        <strong>{{ lang.status_9 }}:</strong> <br> {{ doc.signs|filter(item => item.type == 9)|first.date|date("d.m.Y") }}
+                    </div>
+                {% endif %}
+
+                <div class="col-sm mb-2">
+                    <strong>{{ lang.status }}:</strong>
+                    <br>{{ lang['status_' ~ doc.doc_status] }}
+                </div>
+
+            {% endif %}
+
+        {% else %}
+            {% if lang['status_' ~ doc.doc_status] %}
+                <div class="col-sm"><strong>{{ lang.status }}:</strong><br>{{ lang['status_' ~ doc.doc_status] }}</div>
+            {% endif %}
+            {% if signs|filter(v => v == 8) %}
+                <div class="col-sm"><strong>{{ lang.status_8 }}:</strong> {{ doc.signs|filter(item => item.type == 8)|first.date|date("d.m.Y") }}</div>
+            {% endif %}
+
+        {% endif %}
+    </div>
+</article>
+
+{% if doc.doc_delivery != 'dt_pickup' %}
+    {% if doc.doc_delivery_number and signs|filter(v => v == 3) %}
+        <h4>{{ lang.delivery_status }} {{ lang[doc.doc_delivery] }}</h4>
+        <article class="card bgg">
+            <div class="card-body">
+                <div class="col">{{ doc.trackingservice|raw }}</div>
+                <div class="col mt-4">
+                    <a href="{{ doc.trk_urltracking }}" target="_blank" class="btn {{ btnsize }} {{ btnclass }}"><i class="bi bi-box-arrow-in-right"></i> інформація з
+                        сайту {{ doc.trk_title }}</a>
+                </div>
+            </div>
+        </article>
+    {% endif %}
+{% endif %}
+
+

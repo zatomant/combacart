@@ -6,7 +6,7 @@ namespace Comba\Bundle\Modx\Tracking\Types;
  */
 class TrackingNone
 {
-    protected array $data = array();
+    protected array $data = [];
 
     protected string $title;
     protected string $url;
@@ -108,7 +108,7 @@ class TrackingNone
 
     public function getType(): array
     {
-        $act = array();
+        $act = [];
         foreach ($this->getSupportType() as $action) {
             $act = array_merge(array($action => get_class($this)), $act);
         }

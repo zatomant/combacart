@@ -10,7 +10,7 @@ function dlgSave(dlg) {
     showSpinner("{{ lang.processing }}");
     saveFormData(serializeFormData(dlg), "ch_checkout", function (response) {
         if (response.status === "result_ok") {
-            window.location.href = "/{{ page_checkout_tnx }}";
+            window.location.href = "{{ page_checkout_tnx }}";
         } else {
             ToastHide();
             if (response.modal_error) {
