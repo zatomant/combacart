@@ -31,7 +31,9 @@ class Manager extends ModxOptions
     public function render(): ?string
     {
 
-        define('COMBA_MODE_S', true);
+        if (!defined('COMBA_MODE_S')) {
+            define('COMBA_MODE_S', true);
+        }
 
         $this->setLogLevel(Entity::get('LOG_LEVEL_COMBA'));
 

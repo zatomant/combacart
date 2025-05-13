@@ -89,16 +89,18 @@ class ModxImage
             $modxobject = $this->getModx()->getDocumentObject('id', $id, true);
             $_images = json_decode($modxobject[Entity::get('TV_GOODS_IMAGES')][1], true);
 
-            foreach ($_images['fieldValue'] as $item) {
+            if (!empty($_images)) {
+                foreach ($_images['fieldValue'] as $item) {
 
-                if (isset($item['image'])) {
-                    $imgratio = $item[$ratio] ?? null;
+                    if (isset($item['image'])) {
+                        $imgratio = $item[$ratio] ?? null;
 
-                    // convert multitv image`s data for use in phpthumb class
-                    $imgratio = str_replace(array(':', 'x', 'y', 'width', 'height', ','), array('=', 'sx', 'sy', 'sw', 'sh', '&'), $imgratio);
+                        // convert multitv image`s data for use in phpthumb class
+                        $imgratio = str_replace(array(':', 'x', 'y', 'width', 'height', ','), array('=', 'sx', 'sy', 'sw', 'sh', '&'), $imgratio);
 
-                    $this->ratio_default[$ratio] = $imgratio;
-                    break; // get only one image for sample
+                        $this->ratio_default[$ratio] = $imgratio;
+                        break; // get only one image for sample
+                    }
                 }
             }
         }
@@ -157,8 +159,6 @@ class ModxImage
 
     public function renderImage(string $input, string $options, array $text, string $noImage): string
     {
-        include_once $this->getModx()->getConfig('base_path') . '/vendor/autoload.php';
-
         if (!empty($input) && strtolower(substr($input, -4)) == '.svg') {
             return $input;
         }

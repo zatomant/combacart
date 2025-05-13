@@ -27,7 +27,8 @@ class Options
     {
 
         $this->logger = new Logs(get_class($this));
-        $this->logger->setLogLevel($parent ? $parent->getLogLevel() : $this->_log_level);
+        $this->_log_level = $parent ? $parent->getLogLevel() : $this->_log_level;
+        $this->logger->setLogLevel($this->_log_level);
 
         if (!empty($id) && !is_object($id) && (!is_string($id) || !class_exists($id))) {
             $this->setOptions('id', $id);
@@ -136,7 +137,12 @@ class Options
      */
     public function getOptions($param, string $default = null)
     {
-        $this->log('DEBUG', 'get ' . $param . '->' . $this->_options[$param]);
+        $value = $this->_options[$param] ?? [];
+        if (is_array($value)){
+            $this->log('DEBUG', 'get ' . $param . '->' . (($value !== []) ? var_export($value, true) : ''));
+        } else {
+            $this->log('DEBUG', 'get ' . $param . '->' . $value);
+        }
         return $this->isExists($param) ? $this->_options[$param] : $default;
     }
 

@@ -9,7 +9,7 @@ class Entity
         // Основні параметри
         'NAME' => 'CombaCart',
         'VERSION' => '2.6',
-        'FILE_VER' => '43',
+        'FILE_VER' => '44',
         // Шляхи
         'PATH_SRC' => '/src',
         'PATH_ASSETS' => '/assets',

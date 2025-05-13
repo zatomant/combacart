@@ -173,7 +173,9 @@ class CombaHelper extends ModxOptions
             return 'result_error';
         }
 
-        define('COMBA_MODE_S', true);
+        if (!defined('COMBA_MODE_S')) {
+            define('COMBA_MODE_S', true);
+        }
 
         $tpl = $this->getOptions('tpl');
         $toEmail = $this->getOptions('toEmail');
