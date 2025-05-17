@@ -6,7 +6,7 @@
   ],
   "type": "library",
   "license": "MIT",
-  "version": "2.6.44",
+  "version": "2.6.45",
   "version_short": "2.6",
   "authors": [
     {
@@ -16,11 +16,11 @@
   ],
   "require": {
     "php": ">=7.4",
+    "ext-json": "*",
+    "ext-gd": "*",
     "twig/twig": "^3.1",
     "twig/intl-extra": "^3.1",
-    "ext-json": "*",
     "symfony/mailer": "^5.4",
-    "claviska/simpleimage": "^3.6",
     "twbs/bootstrap": "^5.3",
     "twbs/bootstrap-icons": "^1.11",
     "tecnickcom/tc-lib-barcode": "^1.17",
@@ -31,7 +31,8 @@
     "symfony/http-client": "^5.4",
     "php-http/httplug": "^2.4",
     "nyholm/psr7": "^1.8",
-    "psr/log": "^1.1"
+    "psr/log": "^1.1",
+    "intervention/image": "^2.7"
   },
   "autoload": {
     "psr-4": {

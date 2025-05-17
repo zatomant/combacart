@@ -20,6 +20,7 @@ if (!defined('MODX_BASE_PATH')) {
 
 $out 		= '<script src="/assets/plugins/combacart/assets/js/jQuery/jquery.min.js"></script>';
 $outCart 	= '';
+$hide = $hide ?? '';
 
 if (strpos($hide, 'cart') === false) {
     $params = array(

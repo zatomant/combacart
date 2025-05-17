@@ -39,9 +39,6 @@ if (!defined('MODX_BASE_PATH')) {
 
 require_once __DIR__ . '/autoload.php';
 
-$tplExt = '';
-$tplPath = '';
-
 global $modx;
 $e = $modx->event;
 
@@ -146,7 +143,7 @@ if ($e->name == 'OnWebPageInit') {
         if (!empty($ret) && $ret['result'] == 'ok') {
             $params = [
                 'action' => 'read',
-                'docTpl' => '@FILE:' . $tplPath . '/chunk_cart' . $tplExt,
+                'docTpl' => '@FILE:/chunk_cart',
             ];
             echo $modx->runSnippet('CombaHelper', $params);
         }
@@ -181,8 +178,8 @@ if ($e->name == 'OnWebPageInit') {
         if (!empty($ret) && $ret['result'] == 'ok') {
             $params = [
                 'action' => 'read',
-                'docTpl' => '@FILE:' . $tplPath . '/chunk_checkout_spec' . $tplExt,
-                'docEmptyTpl' => '@FILE:' . $tplPath . '/chunk_checkout_empty' . $tplExt,
+                'docTpl' => '@FILE:/chunk_checkout_spec',
+                'docEmptyTpl' => '@FILE:/chunk_checkout_empty',
             ];
             echo $modx->runSnippet('CombaHelper', $params);
         }
@@ -206,8 +203,8 @@ if ($e->name == 'OnWebPageInit') {
         if (!empty($ret) && $ret['result'] == 'ok') {
             $params = [
                 'action' => 'read',
-                'docTpl' => '@FILE:' . $tplPath . '/chunk_checkout_spec' . $tplExt,
-                'docEmptyTpl' => '@FILE:' . $tplPath . '/chunk_checkout_empty' . $tplExt,
+                'docTpl' => '@FILE:/chunk_checkout_spec',
+                'docEmptyTpl' => '@FILE:/chunk_checkout_empty',
             ];
             echo $modx->runSnippet('CombaHelper', $params);
         }
@@ -242,27 +239,27 @@ if ($e->name == 'OnWebPageInit') {
         */
 
         if (!isset($obj->address) || !$ch->IsValidParam($obj->address, 8)) {
-            if ($obj->typedelivery != 'dt_pickup') {
+            if ($obj->typedelivery && $obj->typedelivery != 'dt_pickup') {
                 $answer->setOptionsEx(array_search_by_key($ch->getLang(), 'prompt_delivery_to'))->setOptions('address', 'element');
             }
         }
-        $obj->phone = preg_replace('~\D~', '', $obj->phone);
-        if (!$ch->IsValidParam($obj->name, 4)) {
+        $obj->phone = preg_replace('~\D~', '', $obj->phone ?? '');
+        if (!$obj->name || !$ch->IsValidParam($obj->name, 4)) {
             $answer->setOptionsEx(array_search_by_key($ch->getLang(), 'prompt_customer'))->setOptions('name', 'element');
         }
-        if (!$ch->IsValidParam($obj->phone, 8)) {
+        if (!$obj->phone || !$ch->IsValidParam($obj->phone, 8)) {
             $answer->setOptionsEx(array_search_by_key($ch->getLang(), 'prompt_customer_phone'))->setOptions('phone', 'element');
         }
-        if ($ch->IsValidParam($obj->phone, 8) && strlen($obj->phone) > 17) {
+        if (!$obj->phone || ($ch->IsValidParam($obj->phone, 8) && strlen($obj->phone) > 17)) {
             $answer->setOptionsEx(array_search_by_key($ch->getLang(), 'error_customer_phone'));
         }
 
         if ($answer->getOptions('status') == 'result_ok') {
 
-            $obj->name_delivery = mb_strlen($obj->name_delivery > 1) ? $obj->name_delivery : $obj->name;
-            $obj->phone_delivery = strlen($obj->phone_delivery > 1) ? $obj->phone_delivery : $obj->phone;
+            $obj->name_delivery = $obj->name_delivery && mb_strlen($obj->name_delivery > 1) ? $obj->name_delivery : $obj->name;
+            $obj->phone_delivery = $obj->phone_delivery && strlen($obj->phone_delivery > 1) ? $obj->phone_delivery : $obj->phone;
 
-            $message = $obj->message;
+            $message = $obj->message ?? '';
             if (!empty($obj->telegram)) {
                 $message = $message . ' Telegram: ' . $obj->telegram;
             }
@@ -278,9 +275,9 @@ if ($e->name == 'OnWebPageInit') {
                     'doc_delivery' => $modx->stripTags($obj->typedelivery),
                     'doc_delivery_client_name' => $modx->stripTags($obj->name_delivery),
                     'doc_delivery_client_phone' => $modx->stripTags($obj->phone_delivery),
-                    'doc_payment' => $modx->stripTags($obj->typepayment),
-                    'doc_client_dncall' => $modx->stripTags($obj->option_dncall),
-                    'doc_client_usebonus' => $modx->stripTags($obj->option_usebonus)
+                    'doc_payment' => $modx->stripTags($obj->typepayment ?? 'pt_cashless'),
+                    'doc_client_dncall' => $modx->stripTags($obj->option_dncall ?? 1),
+                    'doc_client_usebonus' => $modx->stripTags($obj->option_usebonus ?? 0)
                 ]
             );
 

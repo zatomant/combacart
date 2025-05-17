@@ -46,22 +46,23 @@ class ModxOperCabinet extends ModxOper
         $this->getModx()->tpl = \DLTemplate::getInstance($this->getModx());
         $_t = $this->getParser()
             ->getEngine()
-            ->createTemplate(
-                $this->getModx()
-                    ->tpl
-                    ->parseChunk($this->getChunk($docTpl), $doc, true)
-            );
+            ->createTemplate($this->getChunk($docTpl));
 
-        return $this->getModx()->tpl->parseChunk('@CODE:' .
-            $_t->render(
-                [
-                    'doclist' => $doc,
-                    'details' => $this->getOptions('details'),
-                    'marketplace' => $mp_data,
-                    'paging' => $ret['paging'] ?? null
-                ]
-            ),
-            $doc, true);
+        // виклик обробки шаблону для twig
+        $_chunk = $_t->render(
+            [
+                'doclist' => $doc,
+                'details' => $this->getOptions('details'),
+                'marketplace' => $mp_data,
+                'paging' => $ret['paging'] ?? null
+            ]
+        );
+
+        // виклик обробки шаблону для modx
+        return
+            $this->getModx()
+                ->tpl
+                ->parseChunk($_chunk, $doc, true);
 
     }
 }

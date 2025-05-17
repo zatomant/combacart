@@ -326,7 +326,7 @@ class Server extends ModxOptions
             if ($separate) {
                 // поділ по Продавцях
                 $_specs[$spec['docspec_seller']][] = $spec;
-                $_sums[$spec['docspec_seller']] = $spec['ref_available'] == 1 ? $spec['docspec_sum'] + $_sums[$spec['docspec_seller']] : 0;
+                $_sums[$spec['docspec_seller']] = $spec['ref_available'] == 1 ? $spec['docspec_sum'] + ($_sums[$spec['docspec_seller']] ?? 0) : 0;
             } else {
                 $_specs[$seller][] = $spec;
                 $_sums[$seller] = $spec['ref_available'] == 1 ? $spec['docspec_sum'] + $_sums[$seller] : 0;
@@ -413,7 +413,7 @@ class Server extends ModxOptions
     private function fetchsigns(array $source, array $signs = []): array
     {
         for ($i = 0; $i < 14; $i++) {
-            if ($source['doc_sign_' . $i] && $source['doc_sign_' . $i] != 'false') {
+            if (isset($source['doc_sign_' . $i]) && $source['doc_sign_' . $i] != 'false') {
 
                 if (!empty(recursive_array_search_key_value($signs, $i, 'type', true))) {
                     foreach ($signs as $k => $v) {

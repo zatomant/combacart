@@ -6,10 +6,10 @@ return [
     'SESSION_NAME' => 'SSUSER_',
 
 // рівень ведення журналу для плагінів та сніпетів
-    'LOG_LEVEL' => LOG_DEBUG,
+    'LOG_LEVEL' => LOG_ERR,
 
 // рівень ведення журналу для адніністративної сторінки /comba
-    'LOG_LEVEL_COMBA' => LOG_DEBUG,
+    'LOG_LEVEL_COMBA' => LOG_ERR,
 
 // Термін актуальності кешованих даних клієнта за замовчуванням (30 днів у секундах)
     'CACHE_LIFETIME' => 60 * 60 * 24 * 30,

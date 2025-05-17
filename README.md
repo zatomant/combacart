@@ -68,8 +68,8 @@ php process.php
 Рекомендую задати свій "секрет" у файлі /assets/custom/Config/secret.php або у файлі .env вашого змінного середовища.  
 Інакше секрет сформується автоматично і його значення буде залежіть від налаштувань серверу.  
 
-**файл /src/Config/marketplace.php**
-* містить налаштування маркетплейсу за замовчуванням. не змінюйте в цьому файлі нічого.
+**файл /src/Config/**
+* містить налаштування маркетплейсу за замовчуванням. не змінюйте в цій теці нічого.
 
 **тека /assets/custom/Config/**
 * містить файли з вашими перевизначеними налаштуваннями згідно [Правила оновлення налаштувань](/docs/override_settings.md) 
@@ -151,7 +151,7 @@ php process.php
    Якщо використовуєте інший псевдонім, то перевизначить 'PAGE_TNX'
    У разі відсутності такої сторінки буде перехвачено та оброблено modx event 'OnPageNotFound'
 
-6. Створіть сторінку з псевдонімом (alias) cabinet, задайте шаблон blank_tmplt та вставте в вміст ресурсу ```[[CombaFunctions? &fnct=`cabinet`]]```  
+6. Створіть сторінку з псевдонімом (alias) cabinet, задайте шаблон blank_tmplt та вставте в вміст ресурсу ```[!CombaFunctions? &fnct=`cabinet`!]```  
    Детально [Персональний кабінет покупця](/docs/cabinet.md)
 
 7. Опціонально: створіть сторінку з псевдонімом (alias) t - це буде сторінка відстеження замовлення.
@@ -177,7 +177,7 @@ php process.php
 Присутня можливість зміни мови та теми інтерфейсу.
 
 
-## Залежності та вимоги до налаштувань #
+## Залежності та вимоги до налаштувань ##
 
 0. якщо отримуєте помилку Class 'IntlDateFormatter' not found  
    встановіть та активуйте extension php_intl
@@ -195,18 +195,24 @@ php process.php
    *наявно в пакеті інсталяції  
    для роботи з діалоговими формами bootstrap
 
-4. phpthumb (необхідно)  
-   *встановлюється з extras  
-   якщо користуєтесь іншим обробником зображень ніж phpthumb змінить клас ModxImage під свої потреби.
+4. _phpthumb_  
+   вирішив відмовитись від цього на користь більш активної в плані оновлення Intervention/image
 
-5. claviska\SimpleImage (опціонально) [simpleimage](https://github.com/claviska/simpleimage)  
-   *наявно в composer.json  
-   composer require claviska/simpleimage
+5. Intervention\Image (необхідно) [github](https://github.com/Intervention/image)  
+   *наявно в composer.json
+   якщо користуєтесь іншим обробником зображень ніж phpthumb змінить клас ModxImage під свої потреби.
 
 6. multiTV (опціонально) [multiTV](https://github.com/extras-evolution/multiTV)  
    *встановлюється з extras  
    - використовується для списків зображень в TV goods_images. замість списків можете використовувати TV goods_images як "строка" для одного зображення
-   - використовується для списків підвидів товару в TV goods_goods. 
+   - використовується для списків підвидів товару в TV goods_goods
+
+   Щоб прибрати глюк з позиціонуванням окна редагування властивостей зображень після встановлення multiTV  
+   замініть у файлі assets/tvs/multitv/css/colorbox.css
+      рядок 5
+      ```#colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; z1-index:9999; overflow:hidden;}```
+      на цей
+      ```#colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; overflow:hidden;}```
 
 7. cropper.js (опціонально)  
    *наявно в пакеті інсталяції CombaCart extras

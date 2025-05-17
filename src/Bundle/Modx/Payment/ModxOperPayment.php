@@ -65,8 +65,10 @@ class ModxOperPayment extends ModxOper
                     try {
                         $this->log('INFO', "get3thAuth(" . $p_el['provider'] . ", " . $dataset['doc_seller'] . ")");
                         $p_auth = Entity::get3thAuth($p_el['provider'], $dataset['doc_seller']);
-                        $p_class = '\Comba\Bundle\Payments\\' . $p_auth['class'] . '\\' . $p_auth['class'];
-                        $dataset['payee']['pt'][$p_id]['ptcontent'] = (new $p_class($this))->setProvider($p_el['provider'], $p_auth)->getContent($dataset);
+                        if (!empty($p_auth['class'])) {
+                            $p_class = '\Comba\Bundle\Payment\Types\\' . $p_auth['class'] . '\\' . $p_auth['class'];
+                            $dataset['payee']['pt'][$p_id]['ptcontent'] = (new $p_class($this))->setProvider($p_el['provider'], $p_auth)->getContent($dataset);
+                        }
                     } catch (\Throwable $e) {
                         $this->log('CRITICAL', "Не визначено дані провайдера для класу \Payments" . array_search_by_key($p_auth, 'class') . ", документ $uid ");
                         continue;

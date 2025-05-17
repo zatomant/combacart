@@ -131,7 +131,7 @@ if (preg_match('/\bOrderPay\b/', $fnct)) {
     $out = $action->setOptions(
         [
             'uid' => $uid ?? null,
-            'pagefull' => $pagefull
+            'pagefull' => $pagefull ?? null
         ]
     )->render();
 }
@@ -152,7 +152,7 @@ if (preg_match('/\bOrderTracking\b/', $fnct)) {
     $out = $action->setOptions(
         [
             'trk' => $uid ?? null,
-            'pagefull' => $pagefull
+            'pagefull' => $pagefull ?? null
         ]
     )->render();
 }
@@ -161,9 +161,9 @@ if (preg_match('/\bCheckoutTnx\b/', $fnct)) {
 
     $params = [
         'action' => 'readrequest',
-        'docTpl' => '@FILE:' . $tplPath . '/chunk_checkout_tnx' . $tplExt,
-        'docEmptyTpl' => '@FILE:' . $tplPath . '/chunk_checkout_tnx_empty' . $tplExt,
-        'pagefull' => $pagefull
+        'docTpl' => '@FILE:/chunk_checkout_tnx',
+        'docEmptyTpl' => '@FILE:/chunk_checkout_tnx_empty',
+        'pagefull' => $pagefull ?? null
     ];
     echo $modx->runSnippet('CombaHelper', $params);
 

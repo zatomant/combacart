@@ -42,7 +42,7 @@ class Options
      * @param string $filename
      * @return $this
      */
-    public function setLogger(LoggerInterface $logger, string $filename): Options
+    public function setLogger(LoggerInterface $logger, string $filename): self
     {
         $this->logger = $logger;
         if ($logger instanceof Logs) {
@@ -70,7 +70,7 @@ class Options
      * @param int $level LOG_DEBUG, LOG_ERR, LOG_INFO
      * @return $this
      */
-    public function setLogLevel(int $level): Options
+    public function setLogLevel(int $level): self
     {
         $this->_log_level = $level;
         if ($this->logger instanceof Logs) {
@@ -89,7 +89,7 @@ class Options
     /** Ініціалізація та заватаження перекладу
      * @return $this
      */
-    public function initLang(): Options
+    public function initLang(): self
     {
         $language = Entity::get('LANGUAGE');
 
@@ -154,26 +154,25 @@ class Options
      *
      * @return $this
      */
-    public function setOptions($param, $value = null): Options
+    public function setOptions($param, $value = null): self
     {
-        if (!empty($param)) {
+        if (empty($param)) {
+            return $this;
+        }
 
-            if (is_array($param)) {
-                foreach ($param as $key => $val) {
-                    $this->setOptions($key, $val);
-                }
-                return $this;
+        if (is_array($param)) {
+            foreach ($param as $key => $val) {
+                $this->setOptions($key, $val);
             }
+            return $this;
+        }
 
-            if (is_array($value)) {
-                $this->_options[$param] = $value;
-                $this->log('DEBUG', 'set ' . $param . '->' . implode(';', $value));
-            } else {
-                if (isset($value)) {
-                    $this->log('DEBUG', 'set ' . $param . '->' . serialize($value));
-                    $this->_options[$param] = $value;
-                }
-            }
+        $this->_options[$param] = $value;
+
+        if (is_array($value)) {
+            $this->log('DEBUG', 'set ' . $param . '->' . (empty($value) ? '' : var_export($value, true)));
+        } elseif (isset($value)) {
+            $this->log('DEBUG', 'set ' . $param . '->' . serialize($value));
         }
         return $this;
     }

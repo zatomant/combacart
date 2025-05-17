@@ -2,7 +2,7 @@
 
 namespace Comba\Bundle\Modx;
 
-use claviska\SimpleImage;
+
 use Comba\Core\Entity;
 use Comba\Core\Logs;
 use DocumentParser;
@@ -11,12 +11,14 @@ class ModxImage
 {
     private DocumentParser $_modx;
 
-    private array $ratio_default = array(
+    // налаштування пропорцій (для обробника зображень) за замовчуванням
+    // де img16x9 це назва пропорції що має співпадати з назвами пропорцій у файлі assets/tvs/multitv/configs/goods_images
+    private array $ratio_default = [
         'img16x9' => 'far=C',
         'img4x3' => 'zc=C',
         'img1x1' => 'zc=C',
         'img2x3' => 'zc=C',
-    );
+    ];
 
     private array $presets;
 
@@ -41,13 +43,14 @@ class ModxImage
         $oper = $oper ?? null;
 
         $ratio_sfx = '';
-        $options = '&options=`zc=C`'; // far=C,bg=ffffff
+        $options = '&options=`zc=C`'; // far=C
         $preset = $ratio = $preset ?? 'image-max';
 
+        // по назві пресета дістаємо налаштування
         if ($_item = $this->presets[$preset] ?? null) {
             $ratio = $_item['ratio'];
             $options = $_item['value'];
-            $ratio_sfx = ",ratio=" . $_item['name'];
+            $ratio_sfx = ",ratio=" . $_item['name']; // буде частиною шляху до файла
         }
 
         $src = $src ?? '';
@@ -63,7 +66,7 @@ class ModxImage
                         'tvName' => Entity::get('TV_GOODS_IMAGES'),
                         'tplConfig' => '',
                         'outerTpl' => '@CODE:((wrapper))',
-                        'rowTpl' => '@CODE:((image1));'
+                        'rowTpl' => '@CODE:((image));'
                     ]
                 );
 
@@ -90,20 +93,25 @@ class ModxImage
             $_images = json_decode($modxobject[Entity::get('TV_GOODS_IMAGES')][1], true);
 
             if (!empty($_images)) {
+                // multiTV
                 foreach ($_images['fieldValue'] as $item) {
 
                     if (isset($item['image'])) {
                         $imgratio = $item[$ratio] ?? null;
 
-                        // convert multitv image`s data for use in phpthumb class
-                        $imgratio = str_replace(array(':', 'x', 'y', 'width', 'height', ','), array('=', 'sx', 'sy', 'sw', 'sh', '&'), $imgratio);
+                        // convert multitv image`s data to phpthumb`s syntax
+                        $imgratio = str_replace(
+                            [':', 'x', 'y', 'width', 'height', ','],
+                            ['=', 'sx', 'sy', 'sw', 'sh', '&'],
+                            $imgratio);
 
                         $this->ratio_default[$ratio] = $imgratio;
-                        break; // get only one image for sample
+                        break;
                     }
                 }
             }
         }
+
         if (!empty($this->ratio_default)) {
             foreach ($this->ratio_default as $key => $value) {
                 $options = str_replace($key, $value, $options);
@@ -117,26 +125,30 @@ class ModxImage
             }
         }
 
-        $site = filter_var(Entity::get('SERVER_NAME'), FILTER_SANITIZE_URL);
-        $options = str_replace('watermark', 'wmt|' . $site . '|20|*|f0f0f0|ApeMount-WyPM9.ttf|70', $options);
-
-        $text = [
-            $site => [
-                'fontFile' => $this->getModx()->getConfig('base_path') . 'assets/plugins/combacart/assets/font/ApeMount-WyPM9.ttf',
-                'size' => '42',
-                'color' => array('red' => 255, 'green' => 255, 'blue' => 255, 'alpha' => 0.2)
-            ]
-        ];
+        $text = null;
+        if (preg_match('/\bwatermark\b/', $options)) {
+            $text = Entity::get('WATERMARK_TEXT') ?? null;
+            if (!$text) {
+                $site = filter_var(Entity::get('SERVER_NAME'), FILTER_SANITIZE_URL);
+                $text = [
+                    $site => [
+                        'fontFile' => dirname(__DIR__, 3) . '/assets/font/ApeMount-WyPM9.ttf',
+                        'size' => '42',
+                        'color' => ['rgb' => '#FF0000', 'alpha' => 20]
+                    ]
+                ];
+            }
+        }
 
         if (!empty($force)) {
             $options .= ',force=1';
         }
 
-        $out = $this->renderImage(
+        $out = $this->renderImageInterventionImage(
             $src,
             $options,
             $text,
-            'assets/plugins/combacart/assets/img/noimage.png'
+            $this->getRandomNoImageFile($noImageFilePath ?? null)
         );
 
         if (strpos($oper, 'lazy') !== false) {
@@ -157,8 +169,245 @@ class ModxImage
         return $this;
     }
 
-    public function renderImage(string $input, string $options, array $text, string $noImage): string
+    public function renderImageInterventionImage(string $input, string $options, ?array $text, string $noImage): string
     {
+
+        // SVG не обробляємо
+        if (!empty($input) && strtolower(substr($input, -4)) == '.svg') {
+            return $input;
+        }
+
+        // Налаштування прав доступу
+        $newFolderAccessMode = $this->getModx()->getConfig('new_folder_permissions');
+        $newFolderAccessMode = empty($newFolderAccessMode) ? 0755 : octdec($newFolderAccessMode);
+
+        // Шляхи до кешу
+        $defaultCacheFolder = 'assets/cache/';
+        $cacheFolder = $cacheFolder ?? $defaultCacheFolder . 'images';
+
+        // Перевірка та створення кеш-папки
+        $path = $this->getModx()->getConfig('base_path') . $cacheFolder;
+        if (!file_exists($path)) {
+            mkdir($path, $newFolderAccessMode, true);
+            chmod($path, $newFolderAccessMode);
+        }
+
+        // Перевірка вхідного зображення
+        if (!empty($input)) {
+            $input = rawurldecode($input);
+        }
+
+        $inputPath = $this->getModx()->getConfig('base_path') . $input;
+        if (empty($input) || !file_exists($inputPath)) {
+            $inputPath = $this->getModx()->getConfig('base_path') . $noImage;
+        }
+
+        // Парсимо параметри
+        $options = strtr($options, [',' => '&', '_' => '=', '{' => '[', '}' => ']']);
+        parse_str($options, $params);
+
+        // Визначаємо формат вихідного файлу
+        $path_parts = pathinfo($inputPath);
+        $ext = strtolower($path_parts['extension']);
+        $outputFormat = $params['f'] ?? (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']) ? $ext : 'jpg');
+        if (!empty($params['webp'])) {
+            $outputFormat = 'webp';
+        }
+
+        // Додаємо розміри до шляху кешу (якщо вказані)
+        $pathopt = '';
+        if (!empty($params['w']) || !empty($params['h'])) {
+            // Автоматичний розрахунок висоти, якщо вказано ratio
+            if (!empty($params['ratio']) && !empty($params['w'])) {
+                if (is_numeric($params['ratio']) && is_numeric($params['w'])) {
+                    $params['h'] = intval($params['w'] / $params['ratio']);
+                }
+            }
+
+            $pathopt = '/' . ($params['w'] ?? '') . 'x' . ($params['h'] ?? '');
+            $pathopt .= !empty($params['ratio']) && !is_numeric($params['ratio']) ? '_' . $params['ratio'] : '';
+        }
+
+        // Створюємо папки для кешу
+        $fullCachePath = $path . $pathopt;
+        if (!file_exists($fullCachePath)) {
+            mkdir($fullCachePath, $newFolderAccessMode, true);
+        }
+
+        // Формуємо ім'я вихідного файлу
+        $outputFilename = $fullCachePath . '/' . $path_parts['filename'] . '.' . $outputFormat;
+
+        // Якщо зображення ще не існує або потрібно оновити
+        if (!file_exists($outputFilename) || !empty($params['force'])) {
+            try {
+                $manager = new \Intervention\Image\ImageManager(); // gd або imagick
+
+                $image = $manager->make($inputPath);
+
+                if (!empty($params['sx']) && !empty($params['sy']) && !empty($params['sw']) && !empty($params['sh'])) {
+                    $image->crop(
+                        (int)$params['sw'],
+                        (int)$params['sh'],
+                        (int)$params['sx'],
+                        (int)$params['sy']
+                    );
+                }
+
+                // Обробка ресайзу
+                if (!empty($params['w']) && !empty($params['h'])) {
+                    $image->fit(
+                        (int)$params['w'],
+                        (int)$params['h'],
+                        function ($constraint) {
+                            $constraint->upsize(); // Заборонити збільшення маленьких зображень
+                        },
+                        $params['position'] ?? 'center'
+                    );
+                } elseif (!empty($params['w'])) {
+                    $image->resize((int)$params['w'], null, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    });
+                } elseif (!empty($params['h'])) {
+                    $image->resize(null, (int)$params['h'], function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    });
+                }
+
+                // Додаткові параметри якості
+                $quality = isset($params['q']) ? (int)$params['q'] : 90;
+                $quality = max(0, min(100, $quality));
+
+                // Формат зображення
+                $extension = strtolower(pathinfo($outputFilename, PATHINFO_EXTENSION));
+                $format = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp']) ? $extension : 'jpg';
+
+                // Додаємо текст
+                if (!empty($text)) {
+                    $this->addInterventionCenteredText($image, $text);
+                }
+
+                $image->save($outputFilename, $quality, $format);
+
+            } catch (\Exception $e) {
+                (new Logs())->log('ERROR', 'Intervention Image Error: ' . $e->getMessage());
+                return $noImage; // Повертаємо зображення-заглушку у разі помилки
+            }
+        }
+
+        // формуємо webp зображення (швидкий варіант)
+        // потрібно окремо встановлювати в систему https://developers.google.com/speed/webp
+        if (!empty($params['webp']) && $outputFormat !== 'webp') {
+            $outputFilenameWebp = $outputFilename . '.webp';
+            if (!file_exists($outputFilenameWebp)) {
+                exec('cwebp -q 80 "' . $outputFilename . '" -o "' . $outputFilenameWebp . '"');
+            }
+            return str_replace($this->getModx()->getConfig('base_path'), '', $outputFilenameWebp);
+        }
+
+        return str_replace($this->getModx()->getConfig('base_path'), '', $outputFilename);
+    }
+
+    public function addInterventionCenteredText(\Intervention\Image\Image $image, array $text_param): bool
+    {
+        if (empty($text_param)) {
+            return false;
+        }
+
+        $text = key($text_param);
+        $text_param = current($text_param);
+        $fontFile = $text_param['fontFile'] ?? null;
+        $fontSize = $text_param['size'] ?? 12;
+        $minFontSize = 8; // Мінімальний розмір шрифту, менше не будемо пробувати
+        $textFits = false;
+
+        if (empty($fontFile)) {
+            return false;
+        }
+
+        $width = $image->width();
+        $height = $image->height();
+
+        // Функція для отримання розміру тексту (костыль, бо getTextSize() немає)
+        $getTextSize = function ($text, $fontSize) use ($fontFile) {
+            $box = imagettfbbox($fontSize, 0, $fontFile, $text);
+            return [
+                'width' => abs($box[2] - $box[0]),
+                'height' => abs($box[7] - $box[1])
+            ];
+        };
+
+        // Перевіряємо, чи влізе текст
+        while ($fontSize >= $minFontSize) {
+            $size = $getTextSize($text, $fontSize);
+
+            if ($size['width'] < $width && $size['height'] < $height) {
+                $textFits = true;
+                break;
+            }
+
+            $fontSize -= 2;
+        }
+
+        if (!$textFits) {
+            return false;
+        }
+
+        // Координати для центрування
+        $x = max(0, ($width - $size['width']) / 2);
+        $y = max(0, ($height - $size['height']) / 2 + $size['height']); // +height для корекції baseline
+        $color = $this->hexToRgba($text_param['color']['rgb'] ?: '#FFFFFF', $text_param['color']['alpha'] ?? 20);
+
+        $image->text($text, $x, $y, function (\Intervention\Image\AbstractFont $font) use ($fontFile, $fontSize, $color) {
+            $font->file($fontFile);
+            $font->size($fontSize);
+            $font->color($color);
+            $font->align('left'); // Вирівнювання вже враховане в координатах
+        });
+
+        return true;
+    }
+
+    private function hexToRgba($hex, $opacity): string
+    {
+        $hex = str_replace('#', '', $hex);
+        $r = hexdec(substr($hex, 0, 2));
+        $g = hexdec(substr($hex, 2, 2));
+        $b = hexdec(substr($hex, 4, 2));
+        $a = round($opacity / 100, 2);
+
+        return "rgba($r, $g, $b, $a)";
+    }
+
+    // Допоміжна функція для конвертації HEX+Opacity в RGBA
+
+    /** Повертає шлях до файлу заглушки
+     * @param string|null $customPath
+     * @return mixed|null
+     */
+    private function getRandomNoImageFile(string $customPath = null)
+    {
+        $dir = dirname(__DIR__, 3) . '/assets/img/placeholders';
+        $files = glob($dir . '/noimage*.{jpg,png}', GLOB_BRACE);
+        $file = empty($files) ? null : $files[array_rand($files)];
+
+        $customFiles = glob($customPath . '/noimage*.{jpg,png}', GLOB_BRACE);
+        $customFile = empty($customFiles) ? null : $customFiles[array_rand($customFiles)];
+
+        return !empty($customFile) ? $customFile : $file;
+    }
+
+    /** DEPRECATED
+     * @param string $input
+     * @param string $options
+     * @param array|null $text
+     * @param string $noImage
+     * @return string
+     */
+    public function renderImagePhpThumb(string $input, string $options, ?array $text, string $noImage): string
+    {
+
         if (!empty($input) && strtolower(substr($input, -4)) == '.svg') {
             return $input;
         }
@@ -291,25 +540,6 @@ class ModxImage
             }
             if ($phpThumb->GenerateThumbnail()) {
                 $phpThumb->RenderToFile($outputFilename);
-
-                // ватермарк
-                if (!empty($text)) {
-                    if (file_exists($outputFilename)) {
-
-                        $_text = key($text);
-                        $_text_param = array_values($text);
-
-                        if (!empty($_text) && !empty($_text_param) && file_exists($_text_param[0]['fontFile'])) {
-                            if (class_exists('SimpleImage')) {
-                                $image = new SimpleImage();
-                                $image
-                                    ->fromFile($outputFilename)
-                                    ->text($_text, $_text_param[0])
-                                    ->toFile($outputFilename);
-                            }
-                        }
-                    }
-                }
             } else {
                 $lg = new Logs();
                 $lg->log('ERROR', 'phpThumb->GenerateThumbnail()\n');
@@ -329,4 +559,5 @@ class ModxImage
 
         return $fNamePref . $fName . $fNameSuf;
     }
+
 }

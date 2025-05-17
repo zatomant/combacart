@@ -9,5 +9,5 @@ Entity::get('CABINET_GUEST_MODE_ENABLED')
 
 
 Для сторінки Кабінет покупця використайте шаблон blank_tmplt та вставте в вміст ресурсу  
-```[[CombaFunctions? &fnct=`cabinet`]]```  
+```[!CombaFunctions? &fnct=`cabinet`!]```  
 

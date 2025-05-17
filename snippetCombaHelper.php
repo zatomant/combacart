@@ -86,7 +86,7 @@ if ($action == '_read') {
         [
             'docTpl' => $docTpl ?? null,
             'docEmptyTpl' => $docEmptyTpl ?? null,
-            'pagefull' => $pagefull
+            'pagefull' => $pagefull ?? null
         ]
     );
     $out = $action->render();
