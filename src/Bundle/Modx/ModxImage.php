@@ -12,7 +12,7 @@ class ModxImage
     private DocumentParser $_modx;
 
     // налаштування пропорцій (для обробника зображень) за замовчуванням
-    // де img16x9 це назва пропорції що має співпадати з назвами пропорцій у файлі assets/tvs/multitv/configs/goods_images
+    // де img16x9 це назва пропорції що має збігатися з назвами пропорцій з файлу assets/tvs/multitv/configs/goods_images
     private array $ratio_default = [
         'img16x9' => 'far=C',
         'img4x3' => 'zc=C',
@@ -123,6 +123,10 @@ class ModxImage
             foreach (explode("&", $phpthumb) as $v) {
                 $options .= ',' . $v;
             }
+        }
+
+        if (isset($webp)) {
+            $options .= ',webp=1';
         }
 
         $text = null;

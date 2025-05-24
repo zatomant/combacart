@@ -20,16 +20,23 @@ class ModxOperCabinet extends ModxOper
     {
         $docTpl = $this->getOptions('page') ? '@FILE:/cabinet_list' : '@FILE:/cabinet';
 
-
         $marketplace = new ModxMarketplace($this);
+
+        $details = [
+            'session' => $this->User()->getSession(),
+            'name' => $this->User()->getName(),
+            'fullname' => $this->User()->getName(),
+            'id' => $this->User()->getId(),
+            'email' => $this->User()->getEmail()
+        ];
 
         $ret = json_decode(
             (new CombaApi())->request('CabinetRead',
                 [
                     'User' => [
-                        'id' => array_search_by_key($this->getOptions('details'), 'id'),
-                        'email' => array_search_by_key($this->getOptions('details'), 'email'),
-                        'session' => array_search_by_key($this->getOptions('details'), 'session'),
+                        'id' => $details['id'],
+                        'email' => $details['email'],
+                        'session' => $details['session']
                     ],
                     'Marketplace' => $marketplace->get()['uid'],
                     'page' => $this->getOptions('page') ?? null
@@ -52,7 +59,7 @@ class ModxOperCabinet extends ModxOper
         $_chunk = $_t->render(
             [
                 'doclist' => $doc,
-                'details' => $this->getOptions('details'),
+                'details' => $details,
                 'marketplace' => $mp_data,
                 'paging' => $ret['paging'] ?? null
             ]

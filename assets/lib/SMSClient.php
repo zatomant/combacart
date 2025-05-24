@@ -46,15 +46,28 @@ Version 1.9 (19.07.2012)
 
 class SMSClient
 {
-	public $mode = 'HTTP'; //HTTP or HTTPS
-	protected $_server = '://alphasms.com.ua/api/http.php';
-	protected $_errors = array();
-	protected $_last_response = array();
-	private $_version = '1.9';
+	public string $mode = 'HTTP'; //HTTP or HTTPS
+	protected string $_server = '://alphasms.com.ua/api/http.php';
+	protected array $_errors = array();
+	protected array $_last_response = array();
+	private string $_version = '1.9';
 	
 	
 	//IN: login and password or key on platform (AlphaSMS)
-	public function __construct($login = '', $password = '', $key = '')
+    /**
+     * @var mixed|string
+     */
+    private mixed $_login;
+    /**
+     * @var mixed|string
+     */
+    private mixed $_password;
+    /**
+     * @var mixed|string
+     */
+    private mixed $_key;
+
+    public function __construct($login = '', $password = '', $key = '')
 	{
 		$this->_login = $login;
 		$this->_password = $password;
@@ -67,7 +80,9 @@ class SMSClient
 	public function sendSMS($from, $to, $message, $send_dt = 0, $wap = '', $flash = 0)
 	{
 
-		if(!$send_dt)	$send_dt = date('Y-m-d H:i:s');
+		if(!$send_dt){
+            $send_dt = date('Y-m-d H:i:s');
+        }
 
 		$d = is_numeric($send_dt) ? $send_dt : strtotime($send_dt);
 		$data = array(	'from'=>$from,
@@ -81,9 +96,8 @@ class SMSClient
 //		if(count($result['errors']))
 //		if(isset($result['errors']) && null !== $result['errors'] && count($result['errors']))
     
-		if(isset($result['id']))	{
-			$out = $result['id'];
-		}
+		$out = $result['id'] ?? '';
+
 		if(isset($result['errors']) && count($result['errors']))	{
 			$this->_errors = $result['errors'];
 			$out = $this->_errors;
@@ -104,8 +118,9 @@ class SMSClient
 		$result = $this->execute('receive', $data);
 //		if(count($result['errors']))
 //		if(isset($result['errors']) && null !== $result['errors'] && count($result['errors']))
-		if(isset($result['errors']) && count($result['errors']))
-			$this->_errors = $result['errors'];
+		if(isset($result['errors']) && count($result['errors'])) {
+            $this->_errors = $result['errors'];
+        }
 		return $result['status'];		
 	}
 
@@ -115,8 +130,9 @@ class SMSClient
 	{
 		$data = array('id'=>$sms_id);
 		$result = $this->execute('delete', $data);
-		if(count(@$result['errors']))
-			$this->_errors = $result['errors'];
+		if(count(@$result['errors'])) {
+            $this->_errors = $result['errors'];
+        }
 		return @$result['status'];		
 	}
 	
@@ -124,25 +140,26 @@ class SMSClient
 	public function getBalance()
 	{
 		$result = $this->execute('balance');
-		if(count(@$result['errors']))
-			$this->_errors = $result['errors'];
+		if(count(@$result['errors'])) {
+            $this->_errors = $result['errors'];
+        }
 		return @$result['balance'];		
 	}
 	
 	//OUT:	returns number of errors
-	public function hasErrors()
-	{
+	public function hasErrors(): int
+    {
 		return count($this->_errors);
 	}
 	
 	//OUT:	returns array of errors
-	public function getErrors()
-	{
+	public function getErrors(): array
+    {
 		return $this->_errors;
 	}
 
-	public function getResponse()
-	{
+	public function getResponse(): array
+    {
 		return $this->_last_response;
 	}
 
@@ -217,13 +234,16 @@ class SMSClient
 		}
 	}
 	
-	protected function generateUrl($command, $params = array())
+	protected function generateUrl($command, $params = array()):string
 	{
 		$params_url = '';
-		if(count($params))
-			foreach($params as $key=>$value)
-		 		$params_url .= '&' . $key . '=' . $this->base64_url_encode($value);
-		if(!$this->_key) { 		
+		if(count($params)) {
+            foreach ($params as $key => $value) {
+                $params_url .= '&' . $key . '=' . $this->base64_url_encode($value);
+            }
+        }
+
+        if(!$this->_key) {
 			$auth = '?login=' . $this->base64_url_encode($this->_login) . '&password=' . $this->base64_url_encode($this->_password);
 		} else {
 			$auth = '?key=' . $this->base64_url_encode($this->_key);
@@ -232,13 +252,13 @@ class SMSClient
 		return strtolower($this->mode) . $this->_server . $auth . $command . $params_url;
 	}
 
-	public function base64_url_encode($input)
-	{
+	public function base64_url_encode($input): string
+    {
 		return strtr(base64_encode($input), '+/=', '-_,');
 	}
 	
-	public function base64_url_decode($input)
-	{
+	public function base64_url_decode($input): bool|string
+    {
 		return base64_decode(strtr($input, '-_,', '+/='));
 	}
 

@@ -16,6 +16,7 @@
 
 use Comba\Bundle\CombaHelper\CombaHelper;
 use Comba\Bundle\Modx\Cabinet\ModxOperCabinet;
+use Comba\Bundle\Modx\ModxImage;
 use Comba\Bundle\Modx\ModxProduct;
 use Comba\Bundle\Modx\ModxSeller;
 use Comba\Bundle\Modx\ModxMarketplace;
@@ -24,7 +25,6 @@ use Comba\Bundle\Modx\Payment\ModxOperPayment;
 use Comba\Bundle\Modx\Tracking\ModxOperTrackingExt;
 use Comba\Core\Entity;
 use function Comba\Functions\safeHTML;
-use function Comba\Functions\array_search_by_key;
 
 if (!defined('MODX_BASE_PATH')) {
     die('What are you doing? Get out of here!');
@@ -112,7 +112,7 @@ if (preg_match('/\bshowSeller\b/', $fnct) && Entity::get('SELLER_SHOW')) {
 }
 
 if (preg_match('/\bGetImage\b/', $fnct)) {
-    return (new Comba\Bundle\Modx\ModxImage($modx))->getImage($modx->event->params);
+    return (new ModxImage($modx))->getImage($modx->event->params);
 }
 
 if (preg_match('/\bOrderPay\b/', $fnct)) {
@@ -195,19 +195,10 @@ if (preg_match('/\bcabinet\b/', $fnct)) {
         return;
     }
 
-    $user = new ModxUser(null, $modx);
-    $details = [
-        'session' => $user->getSession(),
-        'name' => $user->getName(),
-        'fullname' => $user->getName(),
-        'id' => $user->getId()
-    ];
-
     $cabinet = new ModxOperCabinet();
     $cabinet->setLogLevel(Entity::get('LOG_LEVEL'))
         ->setModx($modx)
         ->setOptions([
-            'details' => $details,
             'page' => $page ?? null
         ])
         ->detectLanguage();

@@ -31,7 +31,9 @@ PHP 7.4 та вище
 
 Composer 
 
-EVO CMS 1.4+ або Evolution CMS 3.+ [evolution-cms](https://github.com/evolution-cms/evolution)
+EVO CMS 1.4+ [Evolution CMS 1.4](https://github.com/evolution-cms/evolution/tree/1.4.x)
+або 
+Evolution CMS 3.+ [Evolution CMS 3](https://github.com/evolution-cms/evolution/tree/3.2.x)
 
 
 ## Встановлення ##
@@ -41,26 +43,28 @@ EVO CMS 1.4+ або Evolution CMS 3.+ [evolution-cms](https://github.com/evoluti
 
 ## Оновлення CombaCart ##  
 
-Через браузер:  
+**Варіант 1 - Автоматично через браузер**:  
 відкрийте в браузері сторінку  
 ```
 ваш_сайт/assets/plugins/combacart/update/
 ```
 
-Через консоль веб сервера:  
+**Варііант 2 - Автоматично через консоль веб сервера**:  
 виконайте в консолі  
 ```
 cd _коренева_тека_вашого_сайту_/assets/plugins/combacart/update/
 
 php process.php
 ```  
+_Варіант 1 та 2 для автоматичної роботи оновлення потребує видалення файлу блокування в теці /combacart/update/_.  
 
-Ручне оновлення файлів:  
+
+**Варіант 3 - Ручне оновлення файлів**:  
 - завантажте крайній реліз CombaCart [github.com](https://github.com/zatomant/combacart) та перезапишіть файли в /assets/plugins/combacart
+- в теці /assets/plugins/combacart виконайте **composer update** для оновлення залежностей 
 
-  
 Файл composer.json містить перелік компонентів що використовується в CombaCart.
-ви можете прибрати зайві на ваш розсуд, залежності та модифікувати шаблони за потреби.
+Ви можете прибрати зайві, на ваш розсуд, залежності та модифікувати шаблони за потреби.
 
 
 ## Налаштування ##  
@@ -82,7 +86,7 @@ php process.php
 
 
 **файл /src/Bundle/Standalone/Server.php**
-* містить клас автономного локального Comba сервера:
+* містить клас автономного локального Comba сервера для керування Замовленнями:
 1. метод marketplace()
    - повертає загальні налаштування інтернет магазину
 
@@ -124,10 +128,7 @@ php process.php
      - goods_isondemand ознака "товар під замовлення"
      - goods_seller Продавець товару
      - goods_inbalances ознака залежності товару від залишків
-     - goods_images містить перелік зображень
-       - для frontend завжди повертається шлях до зображення з assets/cache
-       - якщо використовується multiTV, запуск сніпету ```[[CombaFunctions? &fnct=`GetImage`]]``` без параметрів повертає шлях до першого зображення
-       - якщо запустити сніпет ось так ```[[CombaFunctions? &fnct=`GetImage` &src=`[*goods_images*]`]]``` поверне шлях [*goods_images*] враховуючі кеш та інші налаштування, наприклад розміри.
+     - goods_images містить перелік зображень, детально про [Зображення](/docs/images.md)
      - goods_goods містить перелік видів товару (опціонально), використовує multiTV
 
    * сніпети:
@@ -195,8 +196,8 @@ php process.php
    *наявно в пакеті інсталяції  
    для роботи з діалоговими формами bootstrap
 
-4. _phpthumb_  
-   вирішив відмовитись від цього на користь більш активної в плані оновлення Intervention/image
+4. ~~phpthumb~~  
+   вирішив відмовитись від цього на користь більш активної, в плані оновлення, Intervention/image
 
 5. Intervention\Image (необхідно) [github](https://github.com/Intervention/image)  
    *наявно в composer.json
@@ -207,14 +208,14 @@ php process.php
    - використовується для списків зображень в TV goods_images. замість списків можете використовувати TV goods_images як "строка" для одного зображення
    - використовується для списків підвидів товару в TV goods_goods
 
-   Щоб прибрати глюк з позиціонуванням окна редагування властивостей зображень після встановлення multiTV  
+   Щоб виправити помилку з розташуванням вікна редагування властивостей зображення після встановлення multiTV    
    замініть у файлі assets/tvs/multitv/css/colorbox.css
       рядок 5
       ```#colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; z1-index:9999; overflow:hidden;}```
       на цей
       ```#colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; overflow:hidden;}```
 
-7. cropper.js (опціонально)  
+7. cropper.js (опціонально, компонент з multiTV)  
    *наявно в пакеті інсталяції CombaCart extras
    Опис по налаштуванню cropper [multiTV](https://github.com/extras-evolution/multiTV)
    використовується разом з multiTV для списків зображень

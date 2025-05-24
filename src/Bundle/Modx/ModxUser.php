@@ -75,6 +75,10 @@ class ModxUser extends ModxOptions
                 'internalKey' => '-1',
                 'fullname' => 'NaUser'
             ];
+        } else {
+            if (!empty($user['email'])) {
+                $this->setOptions('email', $user['email']);
+            }
         }
 
         $this->setSession($session_id);
@@ -132,5 +136,15 @@ class ModxUser extends ModxOptions
     public function getSession(): ?string
     {
         return $this->getOptions($this->getOptions('GetSessionName'));
+    }
+
+    public function getType():?string
+    {
+        return $this->getOptions('type');
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->getOptions('email');
     }
 }

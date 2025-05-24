@@ -16,8 +16,8 @@
 use Comba\Bundle\CombaHelper\CombaHelper;
 use Comba\Bundle\Modx\ModxCart;
 use Comba\Bundle\Modx\ModxMarketplace;
+use Comba\Bundle\Modx\ModxOper;
 use Comba\Bundle\Modx\ModxProduct;
-use Comba\Bundle\Modx\ModxUser;
 use Comba\Bundle\Modx\Payment\PaymentCallback;
 use Comba\Bundle\Standalone\Manager;
 use Comba\Core\Entity;
@@ -92,7 +92,7 @@ if ($e->name == 'OnDocFormSave') {
 
 if ($e->name == 'OnWebPageInit') {
 
-    (new \Comba\Bundle\Modx\ModxOper())->setModx($modx)->initLang();
+    (new ModxOper())->setModx($modx)->initLang();
 
     $action = isset($_POST['action']) ? $modx->stripTags($_POST['action']) : null;
     if (empty($action)) {
@@ -272,7 +272,7 @@ if ($e->name == 'OnWebPageInit') {
                     'doc_client_email' => $modx->stripTags($obj->email),
                     'doc_client_comment' => $message,
                     'doc_client_address' => $modx->stripTags($obj->address),
-                    'doc_delivery' => $modx->stripTags($obj->typedelivery),
+                    'doc_delivery' => $modx->stripTags($obj->typedelivery ?? 'dt_pickup'),
                     'doc_delivery_client_name' => $modx->stripTags($obj->name_delivery),
                     'doc_delivery_client_phone' => $modx->stripTags($obj->phone_delivery),
                     'doc_payment' => $modx->stripTags($obj->typepayment ?? 'pt_cashless'),
