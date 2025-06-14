@@ -191,5 +191,6 @@ return [
     'action_singin' => 'Sign in',
     'action_singup' => 'Sign up',
     'action_goto_index' => 'Go to main',
-    'action_more' => 'Show more'
+    'action_more' => 'Show more',
+    'images' => 'Images'
 ];

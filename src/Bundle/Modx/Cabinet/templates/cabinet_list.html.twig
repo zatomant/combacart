@@ -86,14 +86,13 @@
                                                 <a href="{{ spec.docspec_product_weblink }}.html" title="{{ spec.docspec_product_name }}">
                                                     <picture>
                                                         <source
-                                                                srcset="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &webp=`1` &preset=`goods-tnx`]]"
+                                                                srcset="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &preset=`goods-tnx` &flags=`webp`]]"
                                                                 type="image/webp">
                                                         <img loading="lazy"
-                                                             data-src="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &preset=`goods-tnx`]]"
-                                                             src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII="
-                                                             width="55px"
-                                                             height="55px"
-                                                             alt="{{ spec.docspec_product_name }}" class="img-fluid pe-1 rounded-lg lazy">
+                                                             data-src="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &preset=`goods-tnx` &flags=`lazy,sof`]]"
+                                                             alt="{{ spec.docspec_product_name }}"
+                                                             class="img-fluid pe-1 rounded-lg lazy"
+                                                        >
                                                     </picture>
                                                 </a>
                                             </div>

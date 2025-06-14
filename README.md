@@ -210,9 +210,9 @@ _Варіант 1 та 2 для автоматичної роботи оновл
 
    Щоб виправити помилку з розташуванням вікна редагування властивостей зображення після встановлення multiTV    
    замініть у файлі assets/tvs/multitv/css/colorbox.css
-      рядок 5
+      рядок 5  
       ```#colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; z1-index:9999; overflow:hidden;}```
-      на цей
+      на цей  
       ```#colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; overflow:hidden;}```
 
 7. cropper.js (опціонально, компонент з multiTV)  

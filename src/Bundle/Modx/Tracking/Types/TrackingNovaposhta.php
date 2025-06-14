@@ -3,6 +3,7 @@
 namespace Comba\Bundle\Modx\Tracking\Types;
 
 use Comba\Core\Entity;
+use Comba\Core\Logs;
 use Exception;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
@@ -35,7 +36,7 @@ class TrackingNovaposhta extends TrackingNone
                 "Documents" => [
                     [
                         "DocumentNumber" => $declaration,
-                        "Phone" => $auth['phone']
+                        "Phone" => $auth['phone'] ?? ''
                     ],
                 ]
             ]

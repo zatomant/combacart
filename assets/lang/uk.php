@@ -191,5 +191,6 @@ return [
     'action_singin' => 'Увійти',
     'action_singup' => 'Зареєструватися',
     'action_goto_index' => 'На головну',
-    'action_more' => 'Показати ще'
+    'action_more' => 'Показати ще',
+    'images' => 'Зображення'
 ];
