@@ -7,10 +7,10 @@
             <a href="{{ spec.docspec_product_weblink }}.html" title="{{ spec.docspec_product_name }}">
                 <picture>
                     <source
-                            srcset="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &webp=`1` &preset=`cart-goods` &oper=`lazy` ]]"
+                            srcset="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &preset=`cart-goods` &flags=`webp`]]"
                             type="image/webp">
                     <img loading="lazy"
-                         data-src="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &preset=`cart-goods` &oper=`lazy` ]]"
+                         data-src="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &preset=`cart-goods` &flags=`lazy,sof`]]"
                          alt="{{ spec.docspec_product_name }}"
                          class="img-fluid pe-1 rounded-lg lazy cart-img">
                 </picture>

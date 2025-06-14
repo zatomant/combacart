@@ -88,6 +88,8 @@ if ($e->name == 'OnDocFormSave') {
     (new CombaHelper(null, $modx))
         ->setLogLevel($_log_level)
         ->updateReferenceProduct($id);
+
+    (new ModxProduct(null,$modx))->prepareImages(['Document' => ['contentid' => $id]], true);
 }
 
 if ($e->name == 'OnWebPageInit') {

@@ -112,7 +112,7 @@ if (preg_match('/\bshowSeller\b/', $fnct) && Entity::get('SELLER_SHOW')) {
 }
 
 if (preg_match('/\bGetImage\b/', $fnct)) {
-    return (new ModxImage($modx))->getImage($modx->event->params);
+    return (new ModxImage($modx))->get($modx->event->params);
 }
 
 if (preg_match('/\bOrderPay\b/', $fnct)) {

@@ -157,12 +157,12 @@ class ModxCart extends ModxOptions
             return null;
         }
 
-        $spec = array(
+        $spec = [
             'uid' => $this->getID(),
             'specid' => $this->getOptions('specid'),
             'amount' => (int)$this->getOptions('amount'),
             'useruid' => $this->_user->getId(),
-        );
+        ];
 
         if (empty($spec['uid']) || empty($spec['specid'])) {
             $this->log('CRITICAL', 'update() spec ID empty');
@@ -195,11 +195,11 @@ class ModxCart extends ModxOptions
             return null;
         }
 
-        $spec = array(
+        $spec = [
             'uid' => $this->getID(),
             'specid' => $this->getOptions('specid'),
             'useruid' => $this->_user->getId(),
-        );
+        ];
 
         if (empty($spec['specid']) || empty($spec['uid']) || empty($spec['useruid'])) {
             $this->log('CRITICAL', 'delete() specid, userid empty');

@@ -32,24 +32,6 @@ class ModxProduct extends ModxOptions
         return $this->_product;
     }
 
-    /** Об'єднує елементи та створює псевдоUID
-     * @param mixed $args
-     * @return string
-     */
-    public static function makeFakeUID($args): string
-    {
-        if (is_string($args)) {
-            return md5($args);
-        }
-
-        if (is_array($args)) {
-            $str = !empty($args) ? implode('_', $args) : '';
-            return md5($str);
-        }
-
-        return md5((string)$args);
-    }
-
     public function getPageInfo(array $data): array
     {
         if (empty($data['Document']['contentid'])) {
@@ -74,13 +56,13 @@ class ModxProduct extends ModxOptions
         return $goods;
     }
 
-    public function set(array $product): ModxProduct
+    public function set(array $product): self
     {
         $this->_product = $product;
         return $this;
     }
 
-    public function obtainFromModxObject(array $modxobject, bool $includeImageSPreset = false): ModxProduct
+    public function obtainFromModxObject(array $modxobject, bool $includeImageSPreset = false): self
     {
         unset($this->_product);
         $ret = !empty($modxobject) && !empty($modxobject[Entity::get('TV_GOODS_GOODS')][1]) ? $modxobject[Entity::get('TV_GOODS_GOODS')][1] : null;
@@ -140,7 +122,7 @@ class ModxProduct extends ModxOptions
                 'goods_seller' => !empty($modxobject[Entity::get('TV_GOODS_SELLER')][1]) ? $modxobject[Entity::get('TV_GOODS_SELLER')][1] : "",
                 'goods_inbalances' => !empty($modxobject[Entity::get('TV_GOODS_INBALANCES')][1]) ? $modxobject[Entity::get('TV_GOODS_INBALANCES')][1] : "0",
                 'contentid' => $modxobject['id'],
-                'goods_md5' => self::makeFakeUID([$modxobject['id'],(!empty($modxobject[Entity::get('TV_GOODS_CODE')][1]) ? $modxobject[Entity::get('TV_GOODS_CODE')][1] : '')])
+                'goods_md5' => self::makeFakeUID([$modxobject['id'], (!empty($modxobject[Entity::get('TV_GOODS_CODE')][1]) ? $modxobject[Entity::get('TV_GOODS_CODE')][1] : '')])
             ];
 
             if ($includeImageSPreset) {
@@ -208,7 +190,7 @@ class ModxProduct extends ModxOptions
                 $item['goods_seller'] = $this->trim($item[Entity::get('TV_GOODS_SELLER')]);
                 $item['goods_inbalances'] = $item[Entity::get('TV_GOODS_INBALANCES')] ?? 0;
                 $item['contentid'] = $modxobject['id'];
-                $item['goods_md5'] = self::makeFakeUID([$modxobject['id'],$item[Entity::get('TV_GOODS_CODE')]]);
+                $item['goods_md5'] = self::makeFakeUID([$modxobject['id'], $item[Entity::get('TV_GOODS_CODE')]]);
 
                 $this->_product[] = $item;
             }
@@ -225,7 +207,25 @@ class ModxProduct extends ModxOptions
         return $str ? preg_replace('/[[:cntrl:]]/', '', htmlspecialchars(trim(str_replace(PHP_EOL, '', $str)))) : '';
     }
 
-    public function setProp(string $key, $value): ModxProduct
+    /** Об'єднує елементи та створює псевдоUID
+     * @param mixed $args
+     * @return string
+     */
+    public static function makeFakeUID($args): string
+    {
+        if (is_string($args)) {
+            return md5($args);
+        }
+
+        if (is_array($args)) {
+            $str = !empty($args) ? implode('_', $args) : '';
+            return md5($str);
+        }
+
+        return md5((string)$args);
+    }
+
+    public function setProp(string $key, $value): self
     {
         if (empty($this->get())) {
             return $this;
@@ -324,7 +324,7 @@ class ModxProduct extends ModxOptions
         return $res;
     }
 
-    public function prepareImages(array $data): void
+    public function prepareImages(array $data, bool $deleteOnly = false): void
     {
         $page = new ModxResource($this->getModx());
         $page->openForEdit($data['Document']['contentid']);
@@ -336,17 +336,25 @@ class ModxProduct extends ModxOptions
                 'key' => Entity::get('TV_GOODS_IMAGES')
             ]
         );
-        if (!empty($images)) {
-            // зображення як "рядок"
-            if (is_string($images)) {
-                $this->createImages(json_encode(['fields' => ['image' => $images]]));
-                return;
-            } else {
-                // зображення як "MultiTV" об'єкт
-                if (!empty($images['fieldValue'])) {
-                    $this->createImages($images['fieldValue']);
-                }
-            }
+
+        if (empty($images)) {
+            return;
+        }
+
+        if (preg_match('/\bfieldValue\b/', $images)) {
+            // MultiTV-об’єкт
+            $images = json_decode($images, true);
+            $images = $images['fieldValue'] ?? [];
+        } else {
+            // Просто рядок
+            $images = ['fields' => ['image' => $images]];
+        }
+
+        $images = json_encode($images);
+        if ($deleteOnly) {
+            $this->deleteImages($images);
+        } else {
+            $this->createImages($images);
         }
         unset($images);
 
@@ -357,27 +365,44 @@ class ModxProduct extends ModxOptions
                 'key' => Entity::get('TV_GOODS_GOODS')
             ]
         );
-        if (!empty($images['fieldValue'])) {
-            $this->createImages($images['fieldValue']);
+        if (preg_match('/\bfieldValue\b/', $images)) {
+            $images = json_encode($images);
+            if ($deleteOnly) {
+                $this->deleteImages($images['fieldValue']);
+            } else {
+                $this->createImages($images['fieldValue']);
+            }
         }
     }
 
-    private function createImages(string $object): ModxProduct
+    private function deleteImages(string $object): void
     {
         $items = !empty($object) ? json_decode($object, true) : [];
         if (empty($items)) {
-            return $this;
+            return;
         }
 
-        // предналаштовані назви схем розмірів
-        // налаштування схем зберігається в Entity::getData('Imagepresets');
-        $prev = [
-            'checkout-goods',
-            'page-goods-top',
-            'cart-goods',
-            'catalog-goods',
-            'goods-slider'
-        ];
+        $mi = new ModxImage($this->getModx());
+
+        foreach ($items as $item) {
+            if (empty($item['image'])) {
+                continue;
+            }
+            $this->log('DEBUG', 'deleteImages ' . $item['image']);
+            $mi->deleteCacheVariants($item['image']);
+        }
+    }
+
+    private function createImages(string $object): void
+    {
+        $items = !empty($object) ? json_decode($object, true) : [];
+        if (empty($items)) {
+            return;
+        }
+
+        // дістємо предналаштовані назви схем розмірів
+        $prev = array_keys(Entity::getData('Imagepresets'));
+        $mi = new ModxImage($this->getModx());
 
         foreach ($items as $item) {
 
@@ -387,13 +412,13 @@ class ModxProduct extends ModxOptions
 
             $this->log('DEBUG', 'createImages ' . $item['image']);
 
-            // для кожного зображення може бути свій масив розмірів
+            // для кожного зображення свій масив розмірів
             $goods_image_ratios = json_encode(
                 [
-                    'img16x9' => str_replace(array(':', 'x', 'y', 'width', 'height'), array('=', 'sx', 'sy', 'sw', 'sh'), $item['img16x9'] ?? ''),
-                    'img4x3' => str_replace(array(':', 'x', 'y', 'width', 'height'), array('=', 'sx', 'sy', 'sw', 'sh'), $item['img4x3'] ?? ''),
-                    'img1x1' => str_replace(array(':', 'x', 'y', 'width', 'height'), array('=', 'sx', 'sy', 'sw', 'sh'), $item['img1x1'] ?? ''),
-                    'img2x3' => str_replace(array(':', 'x', 'y', 'width', 'height'), array('=', 'sx', 'sy', 'sw', 'sh'), $item['img2x3'] ?? '')
+                    'img16x9' => str_replace(['x:', 'y:', 'width:', 'height:', ':', ','], ['sx=', 'sy=', 'sw=', 'sh=', '=', '&'], $item['img16x9'] ?? ''),
+                    'img4x3' => str_replace(['x:', 'y:', 'width:', 'height:', ':', ','], ['sx=', 'sy=', 'sw=', 'sh=', '=', '&'], $item['img4x3'] ?? ''),
+                    'img1x1' => str_replace(['x:', 'y:', 'width:', 'height:', ':', ','], ['sx=', 'sy=', 'sw=', 'sh=', '=', '&'], $item['img1x1'] ?? ''),
+                    'img2x3' => str_replace(['x:', 'y:', 'width:', 'height:', ':', ','], ['sx=', 'sy=', 'sw=', 'sh=', '=', '&'], $item['img2x3'] ?? '')
                 ]
             );
 
@@ -401,21 +426,18 @@ class ModxProduct extends ModxOptions
             // передаємо шлях до початкового файлу,
             // схему розмірів,
             // параметри пропорцій розмірів зображення
-            // force = 1 : примусово видалити старі файли
-            $image = new ModxImage($this->getModx());
+            // forced = 1 : примусово видалити старі файли
             foreach ($prev as $opt) {
-                $image->getImage(
+                $mi->get(
                     [
                         'src' => $item['image'],
                         'preset' => $opt,
                         'imgratio' => $goods_image_ratios,
-                        'force' => 1
+                        'flag' => 'forced'
                     ]
                 );
             }
         }
 
-        return $this;
     }
-
 }

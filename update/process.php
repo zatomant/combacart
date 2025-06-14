@@ -125,7 +125,7 @@ class AfterStoreUpdate
                 }
 
                 $command = sprintf(
-                    '%s install --working-dir=%s --prefer-dist --optimize-autoloader',
+                    '%s update --working-dir=%s --prefer-dist --optimize-autoloader',
                     self::COMPOSER_PATH,
                     escapeshellarg($this->_toPath)
                 );

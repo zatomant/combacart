@@ -17,9 +17,10 @@
                         {% for spec in doc.specs %}
                             <picture>
                                 <source
-                                        srcset="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &webp=`1` &preset=`goods-tnx`]]"
+                                        srcset="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &preset=`goods-tnx` &flags=`webp`]]"
                                         type="image/webp">
-                                <img class="img-fluid" src="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &preset=`goods-tnx`]]">
+                                <img class="img-fluid"
+                                     src="[(site_url)][[CombaFunctions? &fnct=`GetImage` &src=`{{ spec.docspec_product_photo }}` &preset=`goods-tnx` &flags=`lazy,sof`]]">
                             </picture>
                         {% endfor %}
                     </p>

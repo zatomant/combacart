@@ -11,7 +11,14 @@ class ModxImage
 {
     private DocumentParser $_modx;
 
-    // налаштування пропорцій (для обробника зображень) за замовчуванням
+    private string $path;
+    private string $defaultImagesFolder = 'assets/images';
+    private string $defaulCacheImagesFolder = 'assets/cache/images';
+    private int $permissions;
+    private array $presets;
+
+    // Для обробника зображень.
+    // налаштування пропорцій за замовчуванням
     // де img16x9 це назва пропорції що має збігатися з назвами пропорцій з файлу assets/tvs/multitv/configs/goods_images
     private array $ratio_default = [
         'img16x9' => 'far=C',
@@ -20,31 +27,54 @@ class ModxImage
         'img2x3' => 'zc=C',
     ];
 
-    private array $presets;
-
     public function __construct(?DocumentParser $modx = null)
     {
-        $this->presets = Entity::getData('Imagepresets');
         $this->setModx($modx);
+        $this->path = $this->getModx()->getConfig('base_path');
+        $this->presets = Entity::getData('Imagepresets');
+        $this->permissions = octdec($this->getModx()->getConfig('new_folder_permissions') ?: 0755);
+    }
+
+    public function getModx(): DocumentParser
+    {
+        return $this->_modx;
+    }
+
+    public function setModx(DocumentParser $modx): ModxImage
+    {
+        $this->_modx = $modx;
+        return $this;
     }
 
     /**
-     * getImage без аргументів повертає шлях до кешованого файлу
-     * аргументи:
-     * &oper=`src`- повернути оригінальне ім'я файлу зображення
-     * &webp=`1` використовувати webp для зображень
-     * &filemtime=`1` перевіряти файловий час у файлі md5-кешу
-     * &force=`1` перезаписати вихідне зображення (видалити та створити нове) в кеші
+     * Аргументи:
+     * src шлях до зображення
+     * id ідентифікатор сторінки
+     *
+     * preset назва пресету з предналаштованими параметрами обробника
+     * phpthumb рядок налаштувань обробника в форматі phpThumb (якщо не хочемо використовувати preset)
+     * imgratio рядок налаштувань пропорцій в форматі phpThumb
+     * n номер зображення в списку (якщо використовуються списки зображень multiTV)
+     * flags може містити 'src,webp,forced,lazy'
+     * де:
+     *      src - повернути ім'я файлу зображення без обробки
+     *      webp - перетворити зображення в формат в webp (ігнорує завданий формат в preset)
+     *      force - перезаписати вихідне зображення (видалити та створити нове) в кеші
+     *      lazy - додає до результату рядок ' src="data:image/png......"  з заглушкою в форматі base64
      **/
-    public function getImage(array $args): string
+    public function get(array $args): ?string
     {
-        extract($args);
-
-        $oper = $oper ?? null;
+        $n = $args['n'] ?? null;
+        $id = $args['id'] ?? null;
+        $src = $args['src'] ?? null;
+        $flags = $args['flags'] ?? null;
+        $preset = $args['preset'] ?? null;
+        $imgratio = $args['imgratio'] ?? null;
+        $phpthumb = $args['phpthumb'] ?? null;
 
         $ratio_sfx = '';
-        $options = '&options=`zc=C`'; // far=C
-        $preset = $ratio = $preset ?? 'image-max';
+        $options = '&options=`zc=C`';
+        $preset = $ratio = $preset ?? $phpthumb ?? 'image-max';
 
         // по назві пресета дістаємо налаштування
         if ($_item = $this->presets[$preset] ?? null) {
@@ -53,63 +83,37 @@ class ModxImage
             $ratio_sfx = ",ratio=" . $_item['name']; // буде частиною шляху до файла
         }
 
-        $src = $src ?? '';
-        $id = empty($src) ? ($id ?? $this->getModx()->documentObject['id']) : ($id ?? null);
+        // якщо передано пропорції
+        $imgratio = isset($imgratio) ? (json_decode($imgratio, true)[$ratio] ?? null) : null;
 
-        if (empty($src)) {
+        // порядковий номер зображення
+        $n = (isset($n) && is_numeric($n) && $n > 0) ? (int)$n - 1 : 0;
 
-            // get original filename
-            if (!empty($id) && is_numeric($id)) {
+        if (empty($src) && !empty($id) && is_numeric($id)) {
 
-                $imgs = $this->getModx()->runSnippet('multiTV', [
-                        'docid' => $id,
-                        'tvName' => Entity::get('TV_GOODS_IMAGES'),
-                        'tplConfig' => '',
-                        'outerTpl' => '@CODE:((wrapper))',
-                        'rowTpl' => '@CODE:((image));'
-                    ]
-                );
+            $modxobject = $this->getModx()->getDocumentObject('id', $id, 'all');
+            $imagesTV = Entity::get('TV_GOODS_IMAGES');
 
-                if (empty($imgs)) {
-                    // якщо немає multiTV
-                    $modxobject = $this->getModx()->getDocumentObject('id', $id, 'all');
-                    if (!empty($modxobject[Entity::get('TV_GOODS_IMAGES')][1])) {
-                        $imgs = $modxobject[Entity::get('TV_GOODS_IMAGES')][1];
-                    }
+            $_images = $modxobject[$imagesTV][1];
+            if (!empty($_images) && strlen($_images) > 4) {
+                $src = $_images; // без multiTV це буде шліх до зображення
+                $mtv = json_decode($_images, true);
+                if (!empty($mtv) && is_array($mtv)) {
+                    $src = $mtv['fieldValue'][$n]['image'] ?? null;
+                    $imgratio = !empty($mtv['fieldValue'][$n][$ratio]) ? $mtv['fieldValue'][$n][$ratio] : $imgratio ?? '';
+
+                    // перетворюємо multiTV дані у формат phpthumb
+                    $imgratio = !empty($imgratio) ? str_replace(
+                        ['x:', 'y:', 'width:', 'height:', ':', ','],
+                        ['sx=', 'sy=', 'sw=', 'sh=', '=', '&'],
+                        $imgratio
+                    ) : '';
                 }
-
-                $imgs = explode(';', $imgs);
-                $src = $imgs[0] ?? null;
-            }
-
-            if (strpos($oper, 'src') !== false) {
-                return $src;
             }
         }
 
-        if (!empty($id)) {
-            // get ratio
-            $modxobject = $this->getModx()->getDocumentObject('id', $id, true);
-            $_images = json_decode($modxobject[Entity::get('TV_GOODS_IMAGES')][1], true);
-
-            if (!empty($_images)) {
-                // multiTV
-                foreach ($_images['fieldValue'] as $item) {
-
-                    if (isset($item['image'])) {
-                        $imgratio = $item[$ratio] ?? null;
-
-                        // convert multitv image`s data to phpthumb`s syntax
-                        $imgratio = str_replace(
-                            [':', 'x', 'y', 'width', 'height', ','],
-                            ['=', 'sx', 'sy', 'sw', 'sh', '&'],
-                            $imgratio);
-
-                        $this->ratio_default[$ratio] = $imgratio;
-                        break;
-                    }
-                }
-            }
+        if (!empty($imgratio)) {
+            $this->ratio_default[$ratio] = $imgratio;
         }
 
         if (!empty($this->ratio_default)) {
@@ -125,8 +129,11 @@ class ModxImage
             }
         }
 
-        if (isset($webp)) {
-            $options .= ',webp=1';
+        if (strpos($flags, 'webp') !== false) {
+            $options .= ',webp';
+        }
+        if (strpos($flags, 'forced') !== false) {
+            $options .= ',forced';
         }
 
         $text = null;
@@ -144,79 +151,118 @@ class ModxImage
             }
         }
 
-        if (!empty($force)) {
-            $options .= ',force=1';
+        // не використовувати заглушку?
+        $noph = strpos($flags, 'noph') !== false;
+        if (empty($src) && $noph) {
+            return $src;
         }
 
-        $out = $this->renderImageInterventionImage(
-            $src,
-            $options,
-            $text,
-            $this->getRandomNoImageFile($noImageFilePath ?? null)
-        );
+        // Якщо вхідний файл "недоступний", або він не в теці /images
+        // то замінємо його на заглушку
+        $path = $this->path;
+        if (!file_exists($path . $src) || (strpos(realpath($path . $src), realpath($path . 'assets/images')) !== 0)) {
+            $noImageFile = $this->getRandomNoImageFile($noImageFilePath ?? null);
+            $path_parts = pathinfo($noImageFile);
+            $outputFilename = $this->defaultImagesFolder . '/' . $path_parts['basename'];
+            $noImageFile = $this->renderImageInterventionImage($noImageFile, null, null, $outputFilename);
+            $src = $noImageFile;
+        }
 
-        if (strpos($oper, 'lazy') !== false) {
+        // Якщо операція вимагає лише src, повертаємо його без створення вихідного файлу
+        if (strpos($flags, 'src') !== false) {
+            return $src;
+        }
+
+        $out = !empty($src) ? $this->renderImageInterventionImage($src, $options, $text) : '';
+
+
+        $_ = strtr($options, [',' => '&', '_' => '=', '{' => '[', '}' => ']']);
+        parse_str($_, $_s);
+
+        if (strpos($flags, 'dw') !== false) {
+            if (!empty($_s['w']) && is_numeric($_s['w'])) {
+                $out .= ' '. $_s["w"] . 'w';
+            }
+        }
+
+        if (strpos($flags, 'lazy') !== false) {
             $out .= '" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=';
+        }
+
+        if (preg_match('/sow|soh|sof/', $flags)) {
+            $_ = strtr($options, [',' => '&', '_' => '=', '{' => '[', '}' => ']']);
+            parse_str($_, $_s);
+
+            $hasW = preg_match('/sow|sof/', $flags);
+            $hasH = preg_match('/soh|sof/', $flags);
+
+            if ($hasW && !empty($_s['w']) && is_numeric($_s['w'])) {
+                $out .= '" width="' . $_s['w'];
+            }
+
+            if ($hasH && !empty($_s['h']) && is_numeric($_s['h'])) {
+                $out .= '" height="' . $_s['h'];
+            }
         }
 
         return $out;
     }
 
-    public function getModx(): DocumentParser
+    /** Повертає шлях до одного з файлів заглушки
+     * @param string|null $customPath
+     * @param int|null $pos
+     * @return string|null
+     */
+    private function getRandomNoImageFile(string $customPath = null, ?int $pos = null): ?string
     {
-        return $this->_modx;
+        $path = $this->getModx()->getConfig('base_path');
+
+        $dir = dirname(__DIR__, 3) . '/assets/img/placeholders';
+        $files = glob($dir . '/noimage*.{jpg,png}', GLOB_BRACE);
+        if (null) {
+            $file = !empty($files) && $files[null] ? $files[null] : $files[0];
+        } else {
+            $file = !empty($files) ? $files[array_rand($files)] : null;
+        }
+
+        $customFiles = glob($customPath . '/noimage*.{jpg,png}', GLOB_BRACE);
+        if (null) {
+            $customFile = !empty($customFiles) && $customFiles[null] ? $customFiles[null] : $customFiles[0];
+        } else {
+            $customFile = !empty($customFiles) ? $customFiles[array_rand($customFiles)] : null;
+        }
+
+        $file = !empty($customFile) ? $customFile : $file;
+        return $file ? str_replace($path, '', $file) : null;
     }
 
-    public function setModx(DocumentParser $modx): ModxImage
+    /**
+     * @param string $input
+     * @param string|null $options в форматі phpThumb
+     * @param array|null $text налаштування текстового ватермарку
+     * @param string|null $overrideOutput шлях та назва вихідного файлу (для заглушки)
+     * @return string
+     */
+    public function renderImageInterventionImage(string $input, ?string $options, ?array $text = null, ?string $overrideOutput = null): string
     {
-        $this->_modx = $modx;
-        return $this;
-    }
 
-    public function renderImageInterventionImage(string $input, string $options, ?array $text, string $noImage): string
-    {
-
-        // SVG не обробляємо
-        if (!empty($input) && strtolower(substr($input, -4)) == '.svg') {
+        if (empty($input) || strtolower(substr($input, -4)) == '.svg') {
             return $input;
         }
-
-        // Налаштування прав доступу
-        $newFolderAccessMode = $this->getModx()->getConfig('new_folder_permissions');
-        $newFolderAccessMode = empty($newFolderAccessMode) ? 0755 : octdec($newFolderAccessMode);
-
-        // Шляхи до кешу
-        $defaultCacheFolder = 'assets/cache/';
-        $cacheFolder = $cacheFolder ?? $defaultCacheFolder . 'images';
-
-        // Перевірка та створення кеш-папки
-        $path = $this->getModx()->getConfig('base_path') . $cacheFolder;
-        if (!file_exists($path)) {
-            mkdir($path, $newFolderAccessMode, true);
-            chmod($path, $newFolderAccessMode);
-        }
-
-        // Перевірка вхідного зображення
-        if (!empty($input)) {
-            $input = rawurldecode($input);
-        }
-
-        $inputPath = $this->getModx()->getConfig('base_path') . $input;
-        if (empty($input) || !file_exists($inputPath)) {
-            $inputPath = $this->getModx()->getConfig('base_path') . $noImage;
+        if (!file_exists($this->sanitizePath($this->path . $input))) {
+            return $input;
         }
 
         // Парсимо параметри
         $options = strtr($options, [',' => '&', '_' => '=', '{' => '[', '}' => ']']);
         parse_str($options, $params);
 
-        // Визначаємо формат вихідного файлу
-        $path_parts = pathinfo($inputPath);
+        // Формуемо формат вихідного файлу
+        $path_parts = pathinfo($input);
         $ext = strtolower($path_parts['extension']);
         $outputFormat = $params['f'] ?? (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']) ? $ext : 'jpg');
-        if (!empty($params['webp'])) {
-            $outputFormat = 'webp';
-        }
+
+        $outputFormat = isset($params['webp']) ? 'webp' : $outputFormat;
 
         // Додаємо розміри до шляху кешу (якщо вказані)
         $pathopt = '';
@@ -228,25 +274,28 @@ class ModxImage
                 }
             }
 
-            $pathopt = '/' . ($params['w'] ?? '') . 'x' . ($params['h'] ?? '');
+            $pathopt .= ($params['w'] ?? '') . 'x' . ($params['h'] ?? '');
             $pathopt .= !empty($params['ratio']) && !is_numeric($params['ratio']) ? '_' . $params['ratio'] : '';
         }
 
-        // Створюємо папки для кешу
-        $fullCachePath = $path . $pathopt;
-        if (!file_exists($fullCachePath)) {
-            mkdir($fullCachePath, $newFolderAccessMode, true);
-        }
-
         // Формуємо ім'я вихідного файлу
-        $outputFilename = $fullCachePath . '/' . $path_parts['filename'] . '.' . $outputFormat;
+        $outputPathFilename = $this->defaulCacheImagesFolder . '/' . $pathopt . '/' . str_replace([$this->defaultImagesFolder, '/' . $this->defaultImagesFolder], ['', ''], $path_parts['dirname']) . '/' . $path_parts['filename'] . '.' . $outputFormat;
+        $outputPathFilename = $this->sanitizePath($overrideOutput ?? $outputPathFilename);
+        $outputFullPathFilename = $this->sanitizePath($this->path . $outputPathFilename);
 
         // Якщо зображення ще не існує або потрібно оновити
-        if (!file_exists($outputFilename) || !empty($params['force'])) {
+        if (!file_exists($outputFullPathFilename) || isset($params['forced'])) {
+
+            // Створюємо теку для кешу
+            $_ = dirname($outputFullPathFilename);
+            if (!is_dir($_)) {
+                mkdir($_, $this->permissions, true);
+                chmod($_, $this->permissions);
+            }
+
             try {
                 $manager = new \Intervention\Image\ImageManager(); // gd або imagick
-
-                $image = $manager->make($inputPath);
+                $image = $manager->make($this->sanitizePath($this->path . $input));
 
                 if (!empty($params['sx']) && !empty($params['sy']) && !empty($params['sw']) && !empty($params['sh'])) {
                     $image->crop(
@@ -263,7 +312,8 @@ class ModxImage
                         (int)$params['w'],
                         (int)$params['h'],
                         function ($constraint) {
-                            $constraint->upsize(); // Заборонити збільшення маленьких зображень
+                            $constraint->aspectRatio();
+                            //$constraint->upsize(); // Заборонити збільшення маленьких зображень
                         },
                         $params['position'] ?? 'center'
                     );
@@ -284,7 +334,7 @@ class ModxImage
                 $quality = max(0, min(100, $quality));
 
                 // Формат зображення
-                $extension = strtolower(pathinfo($outputFilename, PATHINFO_EXTENSION));
+                $extension = strtolower(pathinfo($outputPathFilename, PATHINFO_EXTENSION));
                 $format = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp']) ? $extension : 'jpg';
 
                 // Додаємо текст
@@ -292,25 +342,31 @@ class ModxImage
                     $this->addInterventionCenteredText($image, $text);
                 }
 
-                $image->save($outputFilename, $quality, $format);
+                $image->save($outputFullPathFilename, $quality, $format);
 
             } catch (\Exception $e) {
                 (new Logs())->log('ERROR', 'Intervention Image Error: ' . $e->getMessage());
-                return $noImage; // Повертаємо зображення-заглушку у разі помилки
+                return '';
             }
         }
 
         // формуємо webp зображення (швидкий варіант)
         // потрібно окремо встановлювати в систему https://developers.google.com/speed/webp
         if (!empty($params['webp']) && $outputFormat !== 'webp') {
-            $outputFilenameWebp = $outputFilename . '.webp';
-            if (!file_exists($outputFilenameWebp)) {
-                exec('cwebp -q 80 "' . $outputFilename . '" -o "' . $outputFilenameWebp . '"');
+            $outputFilenameWebp = $outputPathFilename . '.webp';
+            if (!file_exists($this->path . $outputFilenameWebp)) {
+                exec('cwebp -q 80 "' . $outputFullPathFilename . '" -o "' . $this->sanitizePath($this->path . $outputFilenameWebp) . '"');
             }
-            return str_replace($this->getModx()->getConfig('base_path'), '', $outputFilenameWebp);
+            $outputPathFilename = $outputFilenameWebp;
         }
 
-        return str_replace($this->getModx()->getConfig('base_path'), '', $outputFilename);
+        return $outputPathFilename;
+    }
+
+    private function sanitizePath(string $path): string
+    {
+        $path = preg_replace('#^(\.\./)+#', '', $path);
+        return preg_replace('#/+#', '/', $path);
     }
 
     public function addInterventionCenteredText(\Intervention\Image\Image $image, array $text_param): bool
@@ -373,195 +429,49 @@ class ModxImage
         return true;
     }
 
+    /** Допоміжна функція для конвертації HEX+Opacity в RGBA
+     * @param $hex
+     * @param $opacity
+     * @return string
+     */
     private function hexToRgba($hex, $opacity): string
     {
         $hex = str_replace('#', '', $hex);
         $r = hexdec(substr($hex, 0, 2));
         $g = hexdec(substr($hex, 2, 2));
         $b = hexdec(substr($hex, 4, 2));
-        $a = round($opacity / 100, 2);
+        $a = str_replace(',', '.', round($opacity / 100, 2));
 
         return "rgba($r, $g, $b, $a)";
     }
 
-    // Допоміжна функція для конвертації HEX+Opacity в RGBA
-
-    /** Повертає шлях до файлу заглушки
-     * @param string|null $customPath
-     * @return mixed|null
+    /** Видалення зображень з кешу
+     * @param string $filename
+     * @return void
      */
-    private function getRandomNoImageFile(string $customPath = null)
+    public function deleteCacheVariants(string $filename): void
     {
-        $dir = dirname(__DIR__, 3) . '/assets/img/placeholders';
-        $files = glob($dir . '/noimage*.{jpg,png}', GLOB_BRACE);
-        $file = empty($files) ? null : $files[array_rand($files)];
+        $searchDir = $this->sanitizePath($this->path . $this->defaulCacheImagesFolder);
 
-        $customFiles = glob($customPath . '/noimage*.{jpg,png}', GLOB_BRACE);
-        $customFile = empty($customFiles) ? null : $customFiles[array_rand($customFiles)];
-
-        return !empty($customFile) ? $customFile : $file;
-    }
-
-    /** DEPRECATED
-     * @param string $input
-     * @param string $options
-     * @param array|null $text
-     * @param string $noImage
-     * @return string
-     */
-    public function renderImagePhpThumb(string $input, string $options, ?array $text, string $noImage): string
-    {
-
-        if (!empty($input) && strtolower(substr($input, -4)) == '.svg') {
-            return $input;
+        $pos = strpos($filename, $this->defaultImagesFolder);
+        if ($pos === false) {
+            (new Logs())->log('DEBUG', "Файл не в теці зображень, скіпаємо " . $filename);
+            return;
         }
 
-        $newFolderAccessMode = $this->getModx()->getConfig('new_folder_permissions');
-        $newFolderAccessMode = empty($new) ? 0755 : octdec($newFolderAccessMode);
+        $relative = substr($filename, $pos + strlen($this->defaultImagesFolder));
+        $pathWithoutExt = preg_replace('/\.\w+$/', '', $relative);
 
-        $defaultCacheFolder = 'assets/cache/';
-        $cacheFolder = $cacheFolder ?? $defaultCacheFolder . 'images';
-        $phpThumbPath = $phpThumbPath ?? 'assets/snippets/phpthumb/';
+        $dirs = glob($searchDir . '/*', GLOB_ONLYDIR);
 
-        /**
-         * @see: https://github.com/kalessil/phpinspectionsea/blob/master/docs/probable-bugs.md#mkdir-race-condition
-         */
-        $path = $this->getModx()->getConfig('base_path') . $cacheFolder;
-        if (!file_exists($path) && mkdir($path) && is_dir($path)) {
-            chmod($path, $newFolderAccessMode);
-        }
+        foreach ($dirs as $dir) {
+            $pattern = $this->sanitizePath($dir . '/' . $pathWithoutExt) . '.*';
 
-        if (!empty($input)) {
-            $input = rawurldecode($input);
-        }
-
-        if (empty($input) || !file_exists($this->getModx()->getConfig('base_path') . $input)) {
-            $input = $noImage ?? $phpThumbPath . 'noimage.jpg';
-        }
-
-        /**
-         * allow read in phpthumb cache folder
-         */
-        if (!file_exists($this->getModx()->getConfig('base_path') . $cacheFolder . '/.htaccess') &&
-            $cacheFolder !== $defaultCacheFolder &&
-            strpos($cacheFolder, $defaultCacheFolder) === 0
-        ) {
-            file_put_contents($this->getModx()->getConfig('base_path') . $cacheFolder . '/.htaccess', "order deny,allow\nallow from all\n");
-        }
-
-        $options = strtr($options, array(',' => '&', '_' => '=', '{' => '[', '}' => ']'));
-
-        $text = $params['text'] ?? ($text ?? null);
-        parse_str($options, $params);
-
-        $path_parts = pathinfo($input);
-        $tmpImagesFolder = str_replace('assets/images', '', $path_parts['dirname']);
-        $tmpImagesFolder = explode('/', $tmpImagesFolder);
-        $ext = strtolower($path_parts['extension']);
-
-        if (empty($params['f'])) {
-            if (!empty($params['webp'])) {
-                $params['f'] = 'webp';
-            } else {
-                $params['f'] = in_array($ext, array('png', 'gif', 'jpeg')) ? $ext : 'jpg';
-            }
-        }
-
-        $fmtime = '';
-        if (isset($filemtime)) {
-            $fmtime = filemtime($this->getModx()->getConfig('base_path') . $input);
-        }
-
-        /* mkdir for w&h options */
-        $pathopt = '';
-        if (!empty($params['w']) || !empty($params['h'])) {
-
-            if (!empty($params['ratio']) && !empty($params['w'])) {
-                if (is_numeric($params['ratio']) && is_numeric($params['w'])) {
-                    $params['h'] = intval($params['w'] / $params['ratio']);
-                }
-            }
-
-            $pathopt = '/' . ($params['w'] ?? '') . 'x' . ($params['h'] ?? '');
-            $pathopt .= !empty($params['ratio']) && !is_numeric($params['ratio']) ? '_' . $params['ratio'] : '';
-
-            if ($params['w'] >= 500 || $params['h'] >= 500) {
-                $options .= 'wmt';
-            }
-        }
-
-        $path .= $pathopt;
-        $cacheFolder .= $pathopt;
-        if (!file_exists($path) && mkdir($path) && is_dir($path)) {
-            chmod($path, $newFolderAccessMode);
-        }
-        /* end mkdir */
-
-        foreach ($tmpImagesFolder as $folder) {
-            if (!empty($folder)) {
-                $cacheFolder .= '/' . $folder;
-                $path = $this->getModx()->getConfig('base_path') . $cacheFolder;
-                if (!file_exists($path) && mkdir($path) && is_dir($path)) {
-                    chmod($path, $newFolderAccessMode);
+            foreach (glob($pattern) as $file) {
+                if (is_file($file)) {
+                    unlink($file);
                 }
             }
         }
-
-        $fNamePref = rtrim($cacheFolder, '/') . '/';
-        $fName = $path_parts['filename'];
-        $fNameSuf = '.' . $params['f'];//$path_parts['extension'];//
-
-        /*
-        $fNameSuf = '-' .
-            (isset($params['w']) ? $params['w'] : '') . 'x' . (isset($params['h']) ? $params['h'] : '') . '-' .
-            substr(md5(serialize($params) . $fmtime), 0, 3) .
-            '.' . $params['f'];
-        */
-
-        $fNameSuf = str_replace("ad", "at", $fNameSuf);
-
-        $outputFilename = $this->getModx()->getConfig('base_path') . $fNamePref . $fName . $fNameSuf;
-        if (!empty($params['force'])) {
-            if (file_exists($outputFilename)) {
-                unlink($outputFilename);
-            }
-        }
-
-        if (!file_exists($outputFilename)) {
-
-            if (!class_exists('phpthumb')) {
-                require_once $this->getModx()->getConfig('base_path') . $phpThumbPath . '/phpthumb.class.php';
-            }
-
-            $phpThumb = new \phpthumb();
-            $phpThumb->config_cache_directory = $this->getModx()->getConfig('base_path') . $defaultCacheFolder;
-            $phpThumb->config_temp_directory = $defaultCacheFolder;
-            $phpThumb->config_document_root = $this->getModx()->getConfig('base_path');
-            $phpThumb->setSourceFilename($this->getModx()->getConfig('base_path') . $input);
-
-            foreach ($params as $key => $value) {
-                $phpThumb->setParameter($key, $value);
-            }
-            if ($phpThumb->GenerateThumbnail()) {
-                $phpThumb->RenderToFile($outputFilename);
-            } else {
-                $lg = new Logs();
-                $lg->log('ERROR', 'phpThumb->GenerateThumbnail()\n');
-                $lg->log('ERROR', json_encode($phpThumb->debugmessages));
-            }
-        }
-
-        // формуємо webp зображення (швидкий варіант)
-        // потрібно окремо встановлювати в систему https://developers.google.com/speed/webp
-        if (isset($webp)) {
-            if (!file_exists($outputFilename . '.webp')) {
-                $outputFilenameWebp = $outputFilename . '.webp';
-                exec('cwebp -q 80 "' . $outputFilename . '" -o "' . $outputFilenameWebp . '"');
-            }
-            $fNameSuf .= '.webp';
-        }
-
-        return $fNamePref . $fName . $fNameSuf;
     }
-
 }
