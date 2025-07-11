@@ -400,7 +400,7 @@ class ModxProduct extends ModxOptions
             return;
         }
 
-        // дістємо предналаштовані назви схем розмірів
+        // отримуємо предналаштовані назви схем розмірів
         $prev = array_keys(Entity::getData('Imagepresets'));
         $mi = new ModxImage($this->getModx());
 

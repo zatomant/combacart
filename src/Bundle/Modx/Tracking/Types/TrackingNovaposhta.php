@@ -16,7 +16,7 @@ class TrackingNovaposhta extends TrackingNone
 {
     protected string $title = 'Нова Пошта';
     protected string $url = 'https://novaposhta.ua/';
-    protected string $urltracking = 'https://novaposhta.ua/tracking/?cargo_number=';
+    protected string $urltracking = 'https://novaposhta.ua/tracking/';
 
     public function getBarcodeInfo(string $declaration, string $seller): ?string
     {
